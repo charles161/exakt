@@ -22,6 +22,21 @@ The compact architecture and truth model are documented in
 
 ## Install
 
+The recommended primitive is the open Agent Skills CLI. Install Forge into the
+current project interactively:
+
+```sh
+npx skills add charles161/forge-skill
+```
+
+Or install it globally for both Codex and Claude Code without prompts:
+
+```sh
+npx skills add charles161/forge-skill --skill forge -g -a codex -a claude-code -y
+```
+
+For a manual installation or a harness the Skills CLI does not detect:
+
 ```sh
 git clone https://github.com/charles161/forge-skill.git
 cd forge-skill
