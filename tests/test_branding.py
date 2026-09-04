@@ -1,4 +1,5 @@
 import json
+import re
 import unittest
 from pathlib import Path
 
@@ -55,10 +56,43 @@ class ExaktBrandContractTests(unittest.TestCase):
         self.assertEqual("exakt", claude["name"])
         self.assertIn("From intent to evidence.", readme)
         self.assertIn("npx skills add charles161/exakt", readme)
-        self.assertIn(
-            "npx skills remove forge -g -y", readme
-        )
         self.assertNotIn("charles161/forge-skill", readme)
+
+    def test_readme_shows_the_real_output_and_how_to_use_it_well(self):
+        readme = (PACKAGE_ROOT / "README.md").read_text(encoding="utf-8")
+
+        for expected in (
+            "## See what Exakt produces",
+            "## A glimpse of the engineering contract",
+            "## Use Exakt well",
+            "EXAKT  •  TASK  •  DESIGN  •  ACTIVE",
+            ".exakt/exakt-state.json",
+            ".exakt/exakt-report.html",
+            "examples/gst-decoded-navigation.json",
+            "examples/gst-decoded-navigation.html",
+            "docs/assets/exakt-report-preview.png",
+            "$exakt",
+            "/exakt",
+        ):
+            self.assertIn(expected, readme)
+
+        self.assertTrue(
+            (PACKAGE_ROOT / "docs/assets/exakt-report-preview.png").is_file(),
+            "README report preview is missing",
+        )
+
+    def test_public_markdown_has_no_legacy_product_name(self):
+        legacy_name = re.compile(r"\bforge\b", re.IGNORECASE)
+        offenders = []
+
+        for path in PACKAGE_ROOT.rglob("*.md"):
+            if ".git" in path.parts:
+                continue
+            text = path.read_text(encoding="utf-8")
+            if legacy_name.search(text):
+                offenders.append(str(path.relative_to(PACKAGE_ROOT)))
+
+        self.assertEqual([], offenders, f"legacy name remains in: {offenders}")
 
     def test_machine_contract_uses_exakt_identifiers_and_state_paths(self):
         controller_path = PACKAGE_ROOT / "skills/exakt/scripts/exakt.py"
