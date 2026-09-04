@@ -1,0 +1,440 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:exakt:schema:exakt-report-v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "authority_mode",
+    "title",
+    "mode",
+    "summary",
+    "status",
+    "phase",
+    "updated_at",
+    "brief",
+    "clarity",
+    "requirements",
+    "architecture",
+    "primitives",
+    "acceptance_criteria",
+    "tasks",
+    "milestones",
+    "traceability",
+    "critiques",
+    "decisions",
+    "verification",
+    "files",
+    "evidence",
+    "gaps",
+    "spec"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "const": "exakt-report-v2"},
+    "authority_mode": {
+      "type": "string",
+      "enum": ["external-journal", "local-self-attested"]
+    },
+    "title": {"$ref": "#/$defs/non_empty"},
+    "mode": {"type": "string", "enum": ["task", "product"]},
+    "summary": {"type": "string"},
+    "status": {
+      "type": "string",
+      "enum": ["draft", "active", "blocked", "failed", "contradicted", "unverified", "verified"]
+    },
+    "phase": {
+      "type": "string",
+      "enum": ["intake", "recon", "requirements", "design", "plan", "execute", "verify", "handoff"]
+    },
+    "updated_at": {"$ref": "#/$defs/non_empty"},
+    "brief": {"$ref": "#/$defs/brief"},
+    "clarity": {"$ref": "#/$defs/clarity"},
+    "requirements": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/requirement"}
+    },
+    "architecture": {"$ref": "#/$defs/architecture"},
+    "primitives": {"$ref": "#/$defs/primitives"},
+    "acceptance_criteria": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/acceptance_criterion"}
+    },
+    "tasks": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/task"}
+    },
+    "milestones": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/milestone"}
+    },
+    "traceability": {"$ref": "#/$defs/traceability"},
+    "critiques": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/critique"}
+    },
+    "decisions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/decision"}
+    },
+    "verification": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/verification"}
+    },
+    "files": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/file"}
+    },
+    "evidence": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/evidence"}
+    },
+    "gaps": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "spec": {"$ref": "#/$defs/spec"}
+  },
+  "$defs": {
+    "non_empty": {"type": "string", "minLength": 1},
+    "identifier": {"type": "string", "minLength": 1},
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "optional_digest": {"type": "string", "pattern": "^$|^[0-9a-f]{64}$"},
+    "item_status": {
+      "type": "string",
+      "enum": ["draft", "pending", "ready", "active", "implementing", "done", "verified", "partially_verified", "blocked", "failed", "unverified", "stale", "contradicted"]
+    },
+    "claim_status": {
+      "type": "string",
+      "enum": ["verified", "partially_verified", "failed", "blocked", "unverified", "stale", "contradicted"]
+    },
+    "string_array": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "id_array": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/identifier"},
+      "uniqueItems": true
+    },
+    "brief": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "users", "constraints"],
+      "properties": {
+        "outcome": {"$ref": "#/$defs/non_empty"},
+        "users": {"$ref": "#/$defs/string_array"},
+        "constraints": {"$ref": "#/$defs/string_array"}
+      }
+    },
+    "clarity_intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "confidence", "reason", "open_item_id"],
+      "properties": {
+        "text": {"$ref": "#/$defs/non_empty"},
+        "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
+        "reason": {"type": "string"},
+        "open_item_id": {"type": ["string", "null"]}
+      }
+    },
+    "clarity_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text", "status", "source", "affects", "blocking"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "text": {"$ref": "#/$defs/non_empty"},
+        "status": {
+          "type": "string",
+          "enum": ["known", "assumed", "decided", "unknown", "conflicted"]
+        },
+        "source": {"$ref": "#/$defs/non_empty"},
+        "affects": {"$ref": "#/$defs/id_array"},
+        "blocking": {"type": "boolean"}
+      }
+    },
+    "clarity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["intent", "ledger"],
+      "properties": {
+        "intent": {"$ref": "#/$defs/clarity_intent"},
+        "ledger": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/clarity_entry"}
+        }
+      }
+    },
+    "requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text", "status"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "text": {"$ref": "#/$defs/non_empty"},
+        "status": {"$ref": "#/$defs/item_status"}
+      }
+    },
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "responsibility", "interfaces", "failure_boundary"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "name": {"$ref": "#/$defs/non_empty"},
+        "responsibility": {"type": "string"},
+        "interfaces": {"$ref": "#/$defs/string_array"},
+        "failure_boundary": {"type": "string"}
+      }
+    },
+    "architecture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["overview", "components", "decisions"],
+      "properties": {
+        "overview": {"type": "string"},
+        "components": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/component"}
+        },
+        "decisions": {"$ref": "#/$defs/string_array"}
+      }
+    },
+    "primitive": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text", "status"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "text": {"$ref": "#/$defs/non_empty"},
+        "status": {"$ref": "#/$defs/item_status"}
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text", "method", "status"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "text": {"$ref": "#/$defs/non_empty"},
+        "method": {"$ref": "#/$defs/non_empty"},
+        "status": {"$ref": "#/$defs/item_status"}
+      }
+    },
+    "counterexample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text", "targets", "status"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "text": {"$ref": "#/$defs/non_empty"},
+        "targets": {"$ref": "#/$defs/id_array"},
+        "status": {"$ref": "#/$defs/item_status"}
+      }
+    },
+    "primitives": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["behaviors", "invariants", "oracles", "counterexamples"],
+      "properties": {
+        "behaviors": {"type": "array", "items": {"$ref": "#/$defs/primitive"}},
+        "invariants": {"type": "array", "items": {"$ref": "#/$defs/primitive"}},
+        "oracles": {"type": "array", "items": {"$ref": "#/$defs/oracle"}},
+        "counterexamples": {"type": "array", "items": {"$ref": "#/$defs/counterexample"}}
+      }
+    },
+    "acceptance_criterion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text", "status", "evidence_ids"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "text": {"$ref": "#/$defs/non_empty"},
+        "status": {"$ref": "#/$defs/item_status"},
+        "evidence_ids": {"$ref": "#/$defs/id_array"}
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "status", "depends_on", "work_type", "requirement_ids", "acceptance_criterion_ids", "verification", "evidence_ids", "milestone_id"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "title": {"$ref": "#/$defs/non_empty"},
+        "status": {"$ref": "#/$defs/item_status"},
+        "depends_on": {"$ref": "#/$defs/id_array"},
+        "work_type": {"type": "string", "enum": ["executable", "non-executable"]},
+        "requirement_ids": {"$ref": "#/$defs/id_array"},
+        "acceptance_criterion_ids": {"$ref": "#/$defs/id_array"},
+        "verification": {"type": "string"},
+        "evidence_ids": {"$ref": "#/$defs/id_array"},
+        "milestone_id": {"$ref": "#/$defs/identifier"}
+      }
+    },
+    "critique": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "source", "finding", "status", "disposition", "rationale"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "source": {"$ref": "#/$defs/non_empty"},
+        "finding": {"$ref": "#/$defs/non_empty"},
+        "status": {"$ref": "#/$defs/item_status"},
+        "disposition": {"type": "string"},
+        "rationale": {"type": "string"}
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "status", "rationale", "impact", "owner"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "title": {"$ref": "#/$defs/non_empty"},
+        "status": {"$ref": "#/$defs/item_status"},
+        "rationale": {"type": "string"},
+        "impact": {"type": "string"},
+        "owner": {"type": "string"}
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "status", "evidence_ids", "proof_type", "freshness", "counterexample"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "name": {"$ref": "#/$defs/non_empty"},
+        "status": {"$ref": "#/$defs/claim_status"},
+        "evidence_ids": {"$ref": "#/$defs/id_array"},
+        "proof_type": {"$ref": "#/$defs/non_empty"},
+        "freshness": {"type": "string", "enum": ["fresh", "stale", "unknown"]},
+        "counterexample": {"type": "string"},
+        "detail": {"type": "string"}
+      }
+    },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "change", "digest", "note"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "path": {"$ref": "#/$defs/non_empty"},
+        "change": {"type": "string"},
+        "digest": {"$ref": "#/$defs/optional_digest"},
+        "note": {"type": "string"}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "type", "stage", "provenance", "subject_digest", "contract_digest", "status", "result", "command", "detail"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "name": {"$ref": "#/$defs/non_empty"},
+        "type": {"$ref": "#/$defs/non_empty"},
+        "stage": {"type": "string", "enum": ["red", "green", "regression", "legitimacy", "falsification", "before", "proof"]},
+        "provenance": {"type": "string", "enum": ["self-attested", "separated", "independent", "external-journal"]},
+        "subject_digest": {"$ref": "#/$defs/digest"},
+        "contract_digest": {"$ref": "#/$defs/digest"},
+        "status": {"$ref": "#/$defs/claim_status"},
+        "result": {"type": "string", "enum": ["failed-as-expected", "passed", "observed", "failed", "blocked"]},
+        "command": {"$ref": "#/$defs/non_empty"},
+        "detail": {"$ref": "#/$defs/non_empty"}
+      }
+    },
+    "commit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "hash", "message"],
+      "properties": {
+        "state": {"type": "string", "enum": ["committed", "prepared", "not-authorized", "blocked"]},
+        "hash": {"type": ["string", "null"], "pattern": "^[0-9a-f]{7,64}$"},
+        "message": {"type": "string"}
+      }
+    },
+    "closeout": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["completed", "covered_ids", "changed_paths", "evidence_ids", "gaps", "commit", "status"],
+      "properties": {
+        "completed": {"$ref": "#/$defs/non_empty"},
+        "covered_ids": {"$ref": "#/$defs/id_array"},
+        "changed_paths": {"$ref": "#/$defs/string_array"},
+        "evidence_ids": {"$ref": "#/$defs/id_array"},
+        "gaps": {"$ref": "#/$defs/string_array"},
+        "commit": {"$ref": "#/$defs/commit"},
+        "status": {"$ref": "#/$defs/claim_status"}
+      }
+    },
+    "milestone": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "status", "task_ids", "acceptance_criterion_ids", "closeout"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "title": {"$ref": "#/$defs/non_empty"},
+        "status": {"$ref": "#/$defs/item_status"},
+        "task_ids": {"$ref": "#/$defs/id_array"},
+        "acceptance_criterion_ids": {"$ref": "#/$defs/id_array"},
+        "closeout": {"$ref": "#/$defs/closeout"}
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "kind"],
+      "properties": {
+        "from": {"$ref": "#/$defs/identifier"},
+        "to": {"$ref": "#/$defs/identifier"},
+        "kind": {"type": "string", "enum": ["defines", "protects", "accepted_by", "observed_by", "challenged_by", "implemented_by", "proved_by", "delivered_in"]}
+      }
+    },
+    "invalidation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "changed_id", "affected_ids", "reason", "recorded_at", "status", "resolved_at"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "changed_id": {"$ref": "#/$defs/identifier"},
+        "affected_ids": {"$ref": "#/$defs/id_array"},
+        "reason": {"$ref": "#/$defs/non_empty"},
+        "recorded_at": {"$ref": "#/$defs/non_empty"},
+        "status": {"type": "string", "enum": ["open", "resolved"]},
+        "resolved_at": {"type": ["string", "null"]}
+      }
+    },
+    "traceability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["edges", "invalidations"],
+      "properties": {
+        "edges": {"type": "array", "items": {"$ref": "#/$defs/edge"}, "uniqueItems": true},
+        "invalidations": {"type": "array", "items": {"$ref": "#/$defs/invalidation"}}
+      }
+    },
+    "spec_change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["revision", "summary", "changed_ids", "reason", "updated_at"],
+      "properties": {
+        "revision": {"type": "integer", "minimum": 1},
+        "summary": {"$ref": "#/$defs/non_empty"},
+        "changed_ids": {"$ref": "#/$defs/id_array"},
+        "reason": {"$ref": "#/$defs/non_empty"},
+        "updated_at": {"$ref": "#/$defs/non_empty"}
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "revision", "digest", "updated_at", "changes"],
+      "properties": {
+        "path": {"$ref": "#/$defs/non_empty"},
+        "revision": {"type": "integer", "minimum": 1},
+        "digest": {"$ref": "#/$defs/optional_digest"},
+        "updated_at": {"$ref": "#/$defs/non_empty"},
+        "changes": {"type": "array", "items": {"$ref": "#/$defs/spec_change"}}
+      }
+    }
+  }
+}

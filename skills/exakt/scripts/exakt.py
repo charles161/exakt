@@ -9,24 +9,14 @@ import os
 import subprocess
 import sys
 import tempfile
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import report_state as state_contract
+import render_spec as spec_renderer
 
-REPORT_VERSION = "exakt-report-v1"
-MODES = ("task", "product")
-PHASES = (
-    "intake",
-    "recon",
-    "requirements",
-    "design",
-    "plan",
-    "execute",
-    "verify",
-    "handoff",
-)
-STATUSES = ("draft", "active", "blocked", "failed", "unverified", "verified")
+REPORT_VERSION = state_contract.REPORT_V2
+MODES = state_contract.MODES
 RENDERER = Path(__file__).resolve().with_name("render_report.py")
 
 
@@ -34,104 +24,12 @@ class ExaktCliError(ValueError):
     pass
 
 
-def utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace(
-        "+00:00", "Z"
-    )
-
-
-def title_from_request(request: str) -> str:
-    first = " ".join(request.strip().split())
-    if not first:
-        raise ExaktCliError("request must not be empty")
-    return first if len(first) <= 72 else first[:69].rstrip() + "…"
-
-
 def initial_state(request: str, mode: str, title: str | None = None) -> dict[str, Any]:
-    if mode not in MODES:
-        raise ExaktCliError(f"mode must be one of: {', '.join(MODES)}")
-    request = request.strip()
-    if not request:
-        raise ExaktCliError("request must not be empty")
-    return {
-        "schema_version": REPORT_VERSION,
-        "title": title or title_from_request(request),
-        "mode": mode,
-        "summary": "Exakt has captured the request. Reconnaissance and requirements are next.",
-        "status": "draft",
-        "phase": "intake",
-        "updated_at": utc_now(),
-        "brief": {"outcome": request, "users": [], "constraints": []},
-        "requirements": [],
-        "architecture": {"overview": "", "components": [], "decisions": []},
-        "acceptance_criteria": [],
-        "tasks": [],
-        "critiques": [],
-        "decisions": [],
-        "verification": [],
-        "files": [],
-        "evidence": [],
-        "gaps": [],
-    }
-
-
-def _is_list(value: Any) -> bool:
-    return isinstance(value, list)
+    return state_contract.initial_state(request, mode, title)
 
 
 def validate_state(state: Any) -> dict[str, Any]:
-    if not isinstance(state, dict):
-        raise ExaktCliError("report state must be a JSON object")
-    required = {
-        "schema_version",
-        "title",
-        "mode",
-        "summary",
-        "status",
-        "phase",
-        "updated_at",
-        "brief",
-        "requirements",
-        "architecture",
-        "acceptance_criteria",
-        "tasks",
-        "critiques",
-        "decisions",
-        "verification",
-        "files",
-        "evidence",
-        "gaps",
-    }
-    missing = sorted(required - set(state))
-    if missing:
-        raise ExaktCliError("report state is missing: " + ", ".join(missing))
-    if state["schema_version"] != REPORT_VERSION:
-        raise ExaktCliError("unsupported report schema version")
-    if state["mode"] not in MODES or state["phase"] not in PHASES:
-        raise ExaktCliError("report mode or phase is invalid")
-    if state["status"] not in STATUSES:
-        raise ExaktCliError("report status is invalid")
-    for name in ("title", "summary", "updated_at"):
-        if not isinstance(state[name], str):
-            raise ExaktCliError(f"report {name} must be text")
-    if not isinstance(state["brief"], dict) or not isinstance(
-        state["architecture"], dict
-    ):
-        raise ExaktCliError("brief and architecture must be objects")
-    for name in (
-        "requirements",
-        "acceptance_criteria",
-        "tasks",
-        "critiques",
-        "decisions",
-        "verification",
-        "files",
-        "evidence",
-        "gaps",
-    ):
-        if not _is_list(state[name]):
-            raise ExaktCliError(f"report {name} must be a list")
-    return state
+    return state_contract.validate_state(state)
 
 
 def load_state(path: Path) -> dict[str, Any]:
@@ -171,6 +69,17 @@ def report_path_for(state_path: Path) -> Path:
     return state_path.with_suffix(".html")
 
 
+def spec_path_for(state_path: Path) -> Path:
+    return state_path.with_name("spec.md")
+
+
+def display_path(path: Path) -> str:
+    try:
+        return path.relative_to(Path.cwd().resolve()).as_posix()
+    except ValueError:
+        return str(path)
+
+
 def render(state_path: Path, output: Path, *, force: bool = False) -> None:
     load_state(state_path)
     if output.exists() and not force:
@@ -190,35 +99,29 @@ def render(state_path: Path, output: Path, *, force: bool = False) -> None:
 
 
 def verification_gaps(state: dict[str, Any]) -> list[str]:
-    gaps: list[str] = []
-    if state["status"] != "verified":
-        gaps.append(f"status is {state['status']!r}, not 'verified'")
-    if state["phase"] != "handoff":
-        gaps.append(f"phase is {state['phase']!r}, not 'handoff'")
-    criteria = state["acceptance_criteria"]
-    if not criteria:
-        gaps.append("no acceptance criteria were recorded")
-    elif any(not isinstance(item, dict) or item.get("status") != "verified" for item in criteria):
-        gaps.append("pending acceptance criteria remain")
-    checks = state["verification"]
-    if not checks:
-        gaps.append("no verification evidence was recorded")
-    elif any(not isinstance(item, dict) or item.get("status") != "verified" for item in checks):
-        gaps.append("verification contains non-verified results")
-    if state["gaps"]:
-        gaps.append("declared gaps remain")
-    return gaps
+    return state_contract.verification_gaps(state)
 
 
 def command_init(args: argparse.Namespace) -> int:
     output = Path(args.output).resolve()
     state = initial_state(args.request, args.mode, args.title)
-    write_state(output, state, force=args.force)
+    specification = spec_path_for(output)
     report = report_path_for(output)
+    candidates = [output, specification]
+    if not args.no_render:
+        candidates.append(report)
+    if not args.force:
+        for candidate in candidates:
+            if candidate.exists():
+                raise ExaktCliError(f"refusing to overwrite existing artifact: {candidate}")
+    state["spec"]["path"] = display_path(specification)
+    spec_renderer.write_spec(specification, state, force=args.force)
+    write_state(output, state, force=args.force)
     if not args.no_render:
         render(output, report, force=args.force)
     print("EXAKT  •  " + args.mode.upper() + "  •  INTAKE")
     print(f"State   {output}")
+    print(f"Spec    {specification}")
     if not args.no_render:
         print(f"Report  {report}")
     print("Next    Inspect the real project, then define requirements and acceptance criteria.")
@@ -234,11 +137,29 @@ def command_status(args: argparse.Namespace) -> int:
         if isinstance(item, dict) and item.get("status") == "verified"
     )
     total = len(state["acceptance_criteria"])
+    legacy = state_contract.legacy_state(state)
+    suffix = "  •  V1 LEGACY" if legacy else ""
     print(
-        f"EXAKT  •  {state['mode'].upper()}  •  {state['phase'].upper()}  •  {state['status'].upper()}"
+        f"EXAKT  •  {state['mode'].upper()}  •  {state['phase'].upper()}  •  "
+        f"{state['status'].upper()}{suffix}"
     )
     print(f"Project {state['title']}")
     print(f"Proof   {verified}/{total} acceptance criteria verified")
+    if legacy:
+        print("Truth   Legacy v1 rules; no v2 trace or proof provenance")
+    else:
+        print(f"Truth   {state['authority_mode']}")
+        provenances = sorted(
+            {
+                item["provenance"]
+                for item in state["evidence"]
+                if item.get("status") == "verified"
+            }
+        )
+        print(
+            "Source  "
+            + (", ".join(provenances) if provenances else "no verified evidence recorded")
+        )
     print(f"State   {path}")
     return 0
 
@@ -251,17 +172,65 @@ def command_verify(args: argparse.Namespace) -> int:
         for gap in gaps:
             print(f"- {gap}")
         return 2
-    print("EXAKT  •  VERIFIED")
-    print("All acceptance criteria and recorded checks are verified against this state.")
+    if state_contract.legacy_state(state):
+        print("EXAKT  •  VERIFIED  •  V1 LEGACY")
+        print("Verified under v1 rules; no v2 trace or proof provenance is claimed.")
+    else:
+        print("EXAKT  •  VERIFIED")
+        print("All acceptance criteria, milestones, traces, and proof gates are verified.")
+    return 0
+
+
+def command_migrate(args: argparse.Namespace) -> int:
+    source = Path(args.state).resolve()
+    output = Path(args.output).resolve()
+    if source == output:
+        raise ExaktCliError("refusing in-place migration; choose a new output path")
+    if output.exists():
+        raise ExaktCliError(f"refusing to overwrite existing state: {output}")
+    state = load_state(source)
+    if not state_contract.legacy_state(state):
+        raise ExaktCliError("migration source must be a legacy v1 state")
+    migrated = state_contract.migrate_v1_state(state)
+    specification = spec_path_for(output)
+    if specification.exists():
+        raise ExaktCliError(f"refusing to overwrite existing specification: {specification}")
+    migrated["spec"]["path"] = display_path(specification)
+    spec_renderer.write_spec(specification, migrated)
+    write_state(output, migrated)
+    print("EXAKT  •  V1 MIGRATED  •  UNVERIFIED")
+    print(f"State   {output}")
+    print(f"Spec    {specification}")
+    print("Next    Rebuild traceability and gather fresh v2 proof.")
     return 0
 
 
 def command_render(args: argparse.Namespace) -> int:
     source = Path(args.state).resolve()
     output = Path(args.output).resolve() if args.output else report_path_for(source)
+    if args.force:
+        state = load_state(source)
+        if not state_contract.legacy_state(state):
+            specification = spec_path_for(source)
+            state["spec"]["path"] = display_path(specification)
+            spec_renderer.write_spec(specification, state, force=True)
+            write_state(source, state, force=True)
     render(source, output, force=args.force)
     print("EXAKT  •  REPORT READY")
     print(f"Report  {output}")
+    return 0
+
+
+def command_spec(args: argparse.Namespace) -> int:
+    source = Path(args.state).resolve()
+    state = load_state(source)
+    output = Path(args.output).resolve() if args.output else spec_path_for(source)
+    state["spec"]["path"] = display_path(output)
+    digest = spec_renderer.write_spec(output, state, force=args.force)
+    write_state(source, state, force=True)
+    print("EXAKT  •  SPEC READY")
+    print(f"Spec    {output}")
+    print(f"Digest  sha256:{digest}")
     return 0
 
 
@@ -293,6 +262,21 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("--output")
     report.add_argument("--force", action="store_true")
     report.set_defaults(handler=command_render)
+
+    specification = subparsers.add_parser(
+        "spec", help="render the living Markdown specification"
+    )
+    specification.add_argument("state")
+    specification.add_argument("--output")
+    specification.add_argument("--force", action="store_true")
+    specification.set_defaults(handler=command_spec)
+
+    migrate = subparsers.add_parser(
+        "migrate", help="copy legacy v1 content into a new unverified v2 state"
+    )
+    migrate.add_argument("state")
+    migrate.add_argument("--output", required=True)
+    migrate.set_defaults(handler=command_migrate)
     return parser
 
 
@@ -301,7 +285,11 @@ def main(argv: list[str] | None = None) -> int:
     try:
         args = parser.parse_args(argv)
         return args.handler(args)
-    except ExaktCliError as error:
+    except (
+        ExaktCliError,
+        state_contract.ReportStateError,
+        spec_renderer.SpecRenderError,
+    ) as error:
         print(f"exakt: {error}", file=sys.stderr)
         return 2
 

@@ -475,5 +475,61 @@
       }
     ],
     "created_at": "2026-09-03T17:00:00Z"
+  },
+  "exakt-report-v2.json": {
+    "schema_version": "exakt-report-v2",
+    "authority_mode": "local-self-attested",
+    "title": "Shareable chapter navigation",
+    "mode": "task",
+    "summary": "Reconnaissance is pending.",
+    "status": "draft",
+    "phase": "intake",
+    "updated_at": "2026-09-04T00:00:00Z",
+    "brief": {
+      "outcome": "Make chapter navigation URL-shareable.",
+      "users": [],
+      "constraints": []
+    },
+    "clarity": {
+      "intent": {
+        "text": "Make chapter navigation URL-shareable.",
+        "confidence": "low",
+        "reason": "Reconnaissance is pending.",
+        "open_item_id": null
+      },
+      "ledger": []
+    },
+    "requirements": [],
+    "architecture": {
+      "overview": "",
+      "components": [],
+      "decisions": []
+    },
+    "primitives": {
+      "behaviors": [],
+      "invariants": [],
+      "oracles": [],
+      "counterexamples": []
+    },
+    "acceptance_criteria": [],
+    "tasks": [],
+    "milestones": [],
+    "traceability": {
+      "edges": [],
+      "invalidations": []
+    },
+    "critiques": [],
+    "decisions": [],
+    "verification": [],
+    "files": [],
+    "evidence": [],
+    "gaps": [],
+    "spec": {
+      "path": ".exakt/spec.md",
+      "revision": 1,
+      "digest": "",
+      "updated_at": "2026-09-04T00:00:00Z",
+      "changes": []
+    }
   }
 }

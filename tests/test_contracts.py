@@ -39,6 +39,7 @@ REQUIRED_SCHEMAS = (
     "exakt-feedback-v1.json",
     "specialist-manifest-v1.json",
     "agent-envelope-v1.json",
+    "exakt-report-v2.json",
 )
 EXPECTED_ENUMS = {
     "workflow_phase": {

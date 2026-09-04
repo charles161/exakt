@@ -96,20 +96,25 @@ class ExaktBrandContractTests(unittest.TestCase):
 
     def test_machine_contract_uses_exakt_identifiers_and_state_paths(self):
         controller_path = PACKAGE_ROOT / "skills/exakt/scripts/exakt.py"
+        report_state_path = PACKAGE_ROOT / "skills/exakt/scripts/report_state.py"
         state_store_path = PACKAGE_ROOT / "skills/exakt/scripts/state_store.py"
         schemas_path = PACKAGE_ROOT / "skills/exakt/schemas"
         self.assertTrue(controller_path.is_file(), "missing Exakt controller")
+        self.assertTrue(report_state_path.is_file(), "missing Exakt report state")
         self.assertTrue(state_store_path.is_file(), "missing Exakt state store")
         self.assertTrue(schemas_path.is_dir(), "missing Exakt schemas")
 
         controller = controller_path.read_text(encoding="utf-8")
+        report_state = report_state_path.read_text(encoding="utf-8")
         state_store = state_store_path.read_text(encoding="utf-8")
         schema_text = "\n".join(
             path.read_text(encoding="utf-8")
             for path in sorted(schemas_path.glob("*.json"))
         )
 
-        self.assertIn('REPORT_VERSION = "exakt-report-v1"', controller)
+        self.assertIn("REPORT_VERSION = state_contract.REPORT_V2", controller)
+        self.assertIn('REPORT_V2 = "exakt-report-v2"', report_state)
+        self.assertIn('REPORT_V1 = "exakt-report-v1"', report_state)
         self.assertIn('.exakt/exakt-state.json', controller)
         self.assertIn('"exakt-canonical-json-v1"', state_store)
         self.assertIn("urn:exakt:schema:", schema_text)
