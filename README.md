@@ -28,7 +28,7 @@ If the old `forge` skill was installed previously, remove it first so the harnes
 discover both names:
 
 ```sh
-npx skills remove forge -g -a codex claude-code -y
+npx skills remove forge -g -y
 ```
 
 The recommended primitive is the open Agent Skills CLI. Install Exakt into the

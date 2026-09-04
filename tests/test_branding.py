@@ -56,7 +56,7 @@ class ExaktBrandContractTests(unittest.TestCase):
         self.assertIn("From intent to evidence.", readme)
         self.assertIn("npx skills add charles161/exakt", readme)
         self.assertIn(
-            "npx skills remove forge -g -a codex claude-code -y", readme
+            "npx skills remove forge -g -y", readme
         )
         self.assertNotIn("charles161/forge-skill", readme)
 

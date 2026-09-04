@@ -185,7 +185,7 @@ Set `origin` to the renamed repository URL in the shared repository and push `ma
 
 - [ ] **Step 1: Remove the previous installation**
 
-Remove only the verified global paths `~/.agents/skills/forge` and `~/.agents/skills/exakt` if present. Do not touch unrelated skills.
+Remove only the verified global `forge` and `exakt` installations if present. Do not touch unrelated skills. Omit the agent filter when removing `forge` so the Skills CLI cleans every harness link for that one skill.
 
 - [ ] **Step 2: Install from the renamed public repository**
 
