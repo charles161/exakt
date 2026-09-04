@@ -2,6 +2,11 @@
 
 Verification compares approved intent with the actual result. Plans, summaries, code presence, screenshots, and successful tool calls are inputs—not proof by themselves.
 
+Use [clarity-and-proof.md](clarity-and-proof.md) for the normative
+behavior/invariant/oracle chain, RED/GREEN/REFACTOR legitimacy checks,
+independent falsification, evidence provenance, staleness, and milestone gates.
+This file adds claim-specific verification guidance.
+
 ## Compact truth loop
 
 For each acceptance criterion:
@@ -12,7 +17,9 @@ For each acceptance criterion:
 4. Record what was intended, what was observed, the evidence, and any gap.
 5. Repair a defect, strengthen weak proof, or revise a falsified design assumption; then inspect and test again.
 
-After any relevant source, configuration, artifact, or runtime change, treat dependent evidence as stale until rerun.
+After any relevant source, configuration, artifact, or runtime change, follow
+the trace from changed contract or subject IDs, mark dependent work and proof
+stale, revise the living contract when needed, and rerun the affected evidence.
 
 ## Status language
 

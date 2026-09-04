@@ -2,6 +2,11 @@
 
 Exakt keeps one small JSON view that powers both the terminal summary and the self-contained HTML report. It is a review interface, not a substitute for repository evidence.
 
+The semantic authority, traceability, proof provenance, milestone closeout, and
+claim-ceiling rules live in [clarity-and-proof.md](clarity-and-proof.md). This
+file defines their persisted projection. A v1 view remains readable and must be
+labeled legacy; it cannot silently satisfy v2 guarantees.
+
 Initialize it with `exakt.py init`. Update it after requirements, design, plan, implementation, and verification change materially. Preserve these top-level fields:
 
 - `title`, `mode`, `summary`, `status`, `phase`, and `updated_at`;
@@ -21,6 +26,18 @@ Recommended item shapes are deliberately simple:
 ```
 
 Allowed report language is `draft`, `active`, `blocked`, `failed`, `unverified`, or `verified`. Set the overall status to `verified` only in `handoff`, with at least one acceptance criterion and one verification entry, every one marked `verified`, and no remaining gaps. `exakt.py verify` enforces this minimum gate.
+
+That first vocabulary is the legacy v1 overall-status projection. When a v1
+report must summarize a richer claim, project `partially_verified` and `stale`
+to overall `unverified`, and `contradicted` to overall `failed`; preserve the
+specific claim status inside its verification row. V2 persists the canonical
+claim vocabulary directly.
+
+Portable v2 runs declare `local-self-attested` authority; stronger runtimes may
+declare `external-journal`. Markdown and HTML are deterministic projections of
+that state, not competing sources of truth. Evidence must identify its stage,
+provenance, exact subject digest, and contract digest before it can close linked
+work.
 
 Render with:
 

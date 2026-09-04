@@ -1,6 +1,8 @@
 # Harness adapters
 
 Preserve Exakt semantics while using only capabilities the active host actually exposes.
+The stable-ID, collision, recovery, and status rules in
+[clarity-and-proof.md](clarity-and-proof.md) govern all mappings.
 
 | Need | Codex | Claude Code | Generic fallback |
 |---|---|---|---|
@@ -13,6 +15,11 @@ Preserve Exakt semantics while using only capabilities the active host actually 
 
 Detect capabilities before using them. Never imply that a host has an approval UI, background worker, sandbox, persistent task system, or independent agent when it does not.
 
+After scope approval, map one native plan item per stable milestone and merge
+status by stable ID on resume. Never replace an unrelated active plan or TODO
+set without asking. Task-level TODOs are optional; the trace and proof contract
+remain in Exakt state/spec rather than being duplicated into the host UI.
+
 ## Specialist handoff
 
 Give a specialist:
@@ -23,7 +30,7 @@ Give a specialist:
 - requested evidence or findings format; and
 - a request to separate facts, inferences, and unknowns.
 
-Run independent subtasks concurrently only when they do not share mutable state. Specialists must not edit, approve work, claim completion, or spawn further agents. Integrate their findings in the lead context and verify important claims directly.
+Run independent subtasks concurrently only when they do not share mutable state. Specialists must not edit, approve work, claim completion, or spawn further agents. Integrate their findings in the lead context and verify important claims directly. Call a result independently verified only under the canonical falsification rule.
 
 ## Report command
 

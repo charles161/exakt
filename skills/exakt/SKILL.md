@@ -12,10 +12,12 @@ Turn the request into an approved engineering result whose claims match the evid
 1. Treat everything after `$exakt` or `/exakt` as the source brief. Read referenced files or links when the host can access them.
 2. Read repository instructions and inspect the relevant code, tests, build commands, and current worktree before proposing a solution. Preserve unrelated user changes.
 3. Choose **Task mode** for bounded work and **Product mode** for a PRD, broad outcome, unresolved product behavior, or work spanning multiple independently deliverable systems. Reclassify if reconnaissance changes the scope.
-4. Read [references/workflows.md](references/workflows.md). For Product mode, also read [references/product-mode.md](references/product-mode.md). Read [references/harness-adapters.md](references/harness-adapters.md) before mapping work to host features.
+4. Read [references/clarity-and-proof.md](references/clarity-and-proof.md) before asking requirements questions, planning, implementing, or closing work. Its clarity, traceability, TDD/proof, milestone, and commit gates are non-negotiable. Then read [references/workflows.md](references/workflows.md). For Product mode, also read [references/product-mode.md](references/product-mode.md). Read [references/harness-adapters.md](references/harness-adapters.md) before mapping work to host features.
 5. Initialize the local project view with `python3 <skill-root>/scripts/exakt.py init "<source brief>" --mode <task|product> --output .exakt/exakt-state.json`. If that path already exists, inspect it with `exakt.py status` and resume it or choose a new explicit path; never overwrite it silently. Read [references/report-interface.md](references/report-interface.md) before updating the view.
 
 Ask at most one consequential question at a time. Ask only when the answer changes scope, behavior, risk, architecture, or approval. Otherwise make a reversible assumption, state it briefly, and continue.
+
+Maintain the material trace **Intent → Requirement → Behavior → Invariant → Acceptance criterion → Oracle → Task → Evidence → Milestone → Commit**, when authorized. A blocking conflict stops affected work. After approval, mirror stable milestones into the host plan or TODO surface without replacing unrelated active work.
 
 ## Build the contract
 
@@ -41,7 +43,7 @@ Give each specialist a bounded question, relevant source material, and expected 
 
 ## Execute the approved scope
 
-Implement tasks in dependency order. Follow repository-native practices and tests. Use test-first work for behavior changes when practical, inspect every resulting diff or artifact, and stop before destructive, external, costly, security-sensitive, or production actions unless the user has explicitly approved that exact action.
+Implement tasks in dependency order. Follow repository-native practices and tests. Executable behavior must pass legitimate **RED**, GREEN, REFACTOR and falsification gates; non-executable work must use the equivalent before-state, counterexample, and proof loop. Inspect every resulting diff or artifact, and stop before destructive, external, costly, security-sensitive, or production actions unless the user has explicitly approved that exact action.
 
 Keep terminal updates short: current outcome, active task, important decision, or blocker. Do not narrate routine tool use.
 
@@ -51,11 +53,11 @@ Read [references/verification.md](references/verification.md) before making comp
 
 For each task, compare the actual output—not the plan or an agent summary—with its acceptance criteria. Run the strongest available targeted checks, inspect failures, repair the implementation or revise a falsified assumption, and repeat. Stop blind retry loops. Mark unavailable proof as `unverified` or `blocked`.
 
-After the last relevant change, run a fresh final pass over the changed files and required checks. Use an isolated verifier when available. Never infer `fixed`, `working`, `complete`, `deployed`, or `verified` from confidence, code presence, an agent message, or one successful command.
+After the last relevant change, run a fresh final pass over the changed files and required checks. Use an isolated verifier when available. If evidence contradicts the living contract, record it, stale dependent work, revise the contract, and re-plan before continuing. Never infer `fixed`, `working`, `complete`, `deployed`, or `verified` from confidence, code presence, an agent message, or one successful command.
 
 ## Handoff
 
-Keep `.exakt/exakt-state.json` synchronized at meaningful phase changes, then render it with `exakt.py render --force`. Before claiming completion, run `exakt.py verify`; a nonzero result limits the final wording even when other tests pass. Inspect `exakt.py --help` for installed syntax rather than guessing flags. A renderer failure must not erase the concise terminal handoff.
+Keep `.exakt/exakt-state.json` and its living `.exakt/spec.md` projection synchronized at meaningful contract changes, then render the HTML with `exakt.py render --force`. Close every milestone with covered IDs, changed artifacts, fresh evidence, gaps, and commit state. Before claiming completion, run `exakt.py verify`; a nonzero result limits the final wording even when other tests pass. Inspect `exakt.py --help` for installed syntax rather than guessing flags. A renderer failure must not erase the concise terminal handoff.
 
 Lead with the outcome, then report only what matters:
 
