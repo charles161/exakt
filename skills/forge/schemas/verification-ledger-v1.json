@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:forge:schema:verification-ledger-v1",
+  "title": "Forge verification ledger v1",
+  "description": "Claim results and independent-review tier are deliberately orthogonal.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "work_item_id", "bundle_id", "bundle_digest", "closure_status", "verification_tier", "claims"],
+  "properties": {
+    "schema_version": {"type": "string", "const": "verification-ledger-v1"},
+    "work_item_id": {"$ref": "#/$defs/non_empty_string"},
+    "bundle_id": {"$ref": "#/$defs/non_empty_string"},
+    "bundle_digest": {"$ref": "#/$defs/sha256"},
+    "closure_status": {"$ref": "#/$defs/closure_status"},
+    "verification_tier": {"$ref": "#/$defs/verification_tier"},
+    "claims": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/claim"},
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "non_empty_string": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
+    "string_list": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/non_empty_string"},
+      "uniqueItems": true
+    },
+    "non_empty_string_list": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/non_empty_string"},
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "claim_status": {
+      "type": "string",
+      "enum": ["verified", "partially_verified", "failed", "blocked", "unverified", "stale", "contradicted"]
+    },
+    "verification_tier": {
+      "type": "string",
+      "enum": ["none", "standard", "independent"]
+    },
+    "closure_status": {
+      "type": "string",
+      "enum": ["open", "verified_complete", "independently_verified_complete", "closed_with_unverified_items", "blocked", "failed", "cancelled"]
+    },
+    "applicability_window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["starts_at", "expires_at"],
+      "properties": {
+        "starts_at": {"$ref": "#/$defs/non_empty_string"},
+        "expires_at": {"type": ["string", "null"]}
+      }
+    },
+    "subject_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subject_id", "subject_digest"],
+      "properties": {
+        "subject_id": {"$ref": "#/$defs/non_empty_string"},
+        "subject_digest": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "proof_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proof_contract_id",
+        "claim_kind",
+        "subjects",
+        "preconditions",
+        "assertions",
+        "required_verifier_adapters",
+        "coverage_obligations",
+        "applicability_window"
+      ],
+      "properties": {
+        "proof_contract_id": {"$ref": "#/$defs/non_empty_string"},
+        "claim_kind": {"$ref": "#/$defs/non_empty_string"},
+        "subjects": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/subject_binding"},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "preconditions": {"$ref": "#/$defs/string_list"},
+        "assertions": {"$ref": "#/$defs/non_empty_string_list"},
+        "required_verifier_adapters": {"$ref": "#/$defs/non_empty_string_list"},
+        "coverage_obligations": {"$ref": "#/$defs/non_empty_string_list"},
+        "applicability_window": {"$ref": "#/$defs/applicability_window"}
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "requirement_ids",
+        "intended",
+        "observed",
+        "supporting_evidence_ids",
+        "contradicting_evidence_ids",
+        "proof_contract",
+        "status",
+        "verification_tier",
+        "freshness_fingerprints",
+        "invalidation_dependencies",
+        "gaps",
+        "counterexamples_attempted",
+        "next_action"
+      ],
+      "properties": {
+        "claim_id": {"$ref": "#/$defs/non_empty_string"},
+        "requirement_ids": {"$ref": "#/$defs/non_empty_string_list"},
+        "intended": {"$ref": "#/$defs/non_empty_string"},
+        "observed": {"type": "string"},
+        "supporting_evidence_ids": {"$ref": "#/$defs/string_list"},
+        "contradicting_evidence_ids": {"$ref": "#/$defs/string_list"},
+        "proof_contract": {"$ref": "#/$defs/proof_contract"},
+        "status": {"$ref": "#/$defs/claim_status"},
+        "verification_tier": {"$ref": "#/$defs/verification_tier"},
+        "freshness_fingerprints": {"$ref": "#/$defs/string_list"},
+        "invalidation_dependencies": {"$ref": "#/$defs/string_list"},
+        "gaps": {"$ref": "#/$defs/string_list"},
+        "counterexamples_attempted": {"$ref": "#/$defs/string_list"},
+        "next_action": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

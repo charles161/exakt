@@ -1,0 +1,8 @@
+{
+  "name": "forge",
+  "version": "0.1.0",
+  "description": "Portable verification-first engineering workflow",
+  "author": {
+    "name": "Charles MJ"
+  }
+}

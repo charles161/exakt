@@ -1,0 +1,18 @@
+{
+  "schema_version": "journal-event-v1",
+  "event_id": "evt-confused-phase",
+  "event_type": "phase_observed",
+  "work_item_id": "work-001",
+  "sequence": 2,
+  "actor": "controller",
+  "timestamp": "2026-09-03T17:01:00Z",
+  "idempotency_key": "event-key-confused-phase",
+  "previous_record_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "prior_state_root": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "workflow_phase": "blocked",
+  "run_status": "active",
+  "payload": {
+    "object_id": "object-002",
+    "payload_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  }
+}

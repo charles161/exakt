@@ -1,0 +1,22 @@
+[
+  {
+    "raw": "https://alice:s3cr3t@example.com/org/repo.git?token=SECRET#fragment",
+    "sanitized": "https://example.com/org/repo.git"
+  },
+  {
+    "raw": "https://alice%40corp:p%40ss@example.com/org/repo.git?Access_Token=SECRET",
+    "sanitized": "https://example.com/org/repo.git"
+  },
+  {
+    "raw": "ssh://deploy:password@example.com:2222/org/repo.git?key=SECRET#fragment",
+    "sanitized": "ssh://example.com:2222/org/repo.git"
+  },
+  {
+    "raw": "user@example.com:org/repo.git",
+    "sanitized": "ssh://example.com/org/repo.git"
+  },
+  {
+    "raw": "git://Example.COM/org/repo.git?token=SECRET",
+    "sanitized": "git://example.com/org/repo.git"
+  }
+]

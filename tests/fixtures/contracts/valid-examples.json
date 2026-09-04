@@ -1,0 +1,479 @@
+{
+  "journal-event-v1.json": {
+    "schema_version": "journal-event-v1",
+    "event_id": "evt-001",
+    "event_type": "phase_observed",
+    "work_item_id": "work-001",
+    "sequence": 1,
+    "actor": "controller",
+    "timestamp": "2026-09-03T17:00:00Z",
+    "idempotency_key": "event-key-001",
+    "previous_record_hash": null,
+    "prior_state_root": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "workflow_phase": "recon",
+    "run_status": "active",
+    "payload": {
+      "object_id": "object-001",
+      "payload_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  },
+  "source-intent-v1.json": {
+    "schema_version": "source-intent-v1",
+    "source_id": "source-001",
+    "work_item_id": "work-001",
+    "items": [
+      {
+        "intent_id": "intent-001",
+        "statement": "Unknown fields fail closed.",
+        "normative": true,
+        "coverage_status": "mapped",
+        "oracle_row_ids": ["claim-001"],
+        "disposition": null,
+        "rationale": null,
+        "approval_id": null
+      }
+    ]
+  },
+  "oracle-v1.json": {
+    "schema_version": "oracle-v1",
+    "oracle_id": "oracle-001",
+    "work_item_id": "work-001",
+    "version": 1,
+    "approval_id": "approval-001",
+    "rows": [
+      {
+        "claim_id": "claim-001",
+        "requirement_ids": ["requirement-001"],
+        "claim_text": "The contract rejects unknown fields.",
+        "scope": {
+          "subject_kind": "source",
+          "target_ids": ["repository-001"]
+        },
+        "criticality": "required",
+        "prohibited_outcomes": ["Unknown fields are accepted."],
+        "acceptance_examples": ["A future field produces an error."],
+        "required_proof_types": ["contract_test"]
+      }
+    ]
+  },
+  "task-graph-v1.json": {
+    "schema_version": "task-graph-v1",
+    "work_item_id": "work-001",
+    "oracle_id": "oracle-001",
+    "tasks": [
+      {
+        "task_id": "task-001",
+        "description": "Define workflow contracts.",
+        "dependencies": [],
+        "requirement_ids": ["requirement-001"],
+        "expected_files": ["schemas/approval-v1.json"],
+        "verification_steps": ["Run focused contract tests."],
+        "approval_policy": "none",
+        "status": "ready",
+        "attempts": 0,
+        "evidence_ids": []
+      }
+    ]
+  },
+  "product-graph-v1.json": {
+    "schema_version": "product-graph-v1",
+    "product_id": "product-001",
+    "oracle_id": "oracle-001",
+    "closure_status": "verified_complete",
+    "slices": [
+      {
+        "slice_id": "slice-001",
+        "target_roots": ["repository-001"],
+        "task_work_item_id": "work-slice-001",
+        "parent_oracle_version": 1,
+        "parent_oracle_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "inherited_oracle_rows": [
+          {
+            "row_id": "claim-001",
+            "row_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ],
+        "local_oracle_rows": [
+          {
+            "row_id": "claim-slice-001",
+            "row_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        ],
+        "dependencies": [],
+        "deliverable_boundary": "Contract validation only.",
+        "approval_id": "approval-001",
+        "action_budget": {
+          "max_agent_invocations": 1,
+          "max_controller_commands": 20,
+          "max_wall_clock_seconds": 3600,
+          "max_external_writes": 0,
+          "max_monetary_amount": null,
+          "currency": null
+        },
+        "closure_policy": "required",
+        "closure_status": "verified_complete",
+        "closure_receipt": {
+          "child_terminal_state_root": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "child_oracle_id": "oracle-slice-001",
+          "child_oracle_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "verification_bundle_id": "bundle-slice-001",
+          "verification_bundle_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "closure_status": "verified_complete"
+        }
+      }
+    ]
+  },
+  "approval-v1.json": {
+    "schema_version": "approval-v1",
+    "approval_id": "approval-001",
+    "work_item_id": "work-001",
+    "expected_state_root": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "subject_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "authority": {
+      "authority_kind": "live_user",
+      "identity": "user-001",
+      "channel": "codex",
+      "receipt_id": null
+    },
+    "scope": {
+      "targets": ["repository-001"],
+      "action_class": "local_reversible_write",
+      "slice_id": "slice-001",
+      "oracle_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "external_action_policy_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "action_budget_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    "expires_at": "2026-09-03T18:00:00Z",
+    "nonce": "nonce-001",
+    "clock_epoch": 1,
+    "single_use": true
+  },
+  "input-manifest-v1.json": {
+    "schema_version": "input-manifest-v1",
+    "manifest_id": "manifest-001",
+    "repository_id": "repository-001",
+    "source_revision": {
+      "commit": "commit-001",
+      "tree": "tree-001"
+    },
+    "regular_files": [
+      {
+        "path": "src/example.py",
+        "provenance": "tracked",
+        "content_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "size": 42
+      },
+      {
+        "path": "src/modified.py",
+        "provenance": "dirty",
+        "content_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "size": 43
+      },
+      {
+        "path": "tests/local.py",
+        "provenance": "untracked",
+        "content_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "size": 44
+      }
+    ],
+    "symlinks": [
+      {
+        "path": "src/current.py",
+        "provenance": "tracked",
+        "link_target": "example.py",
+        "link_target_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      }
+    ],
+    "lfs_objects": [
+      {
+        "path": "fixtures/model.bin",
+        "provenance": "tracked",
+        "pointer_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "pointer_size": 128,
+        "materialized_object_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "materialized_size": 4096
+      }
+    ],
+    "submodules": [
+      {
+        "path": "vendor/component",
+        "provenance": "dirty",
+        "repository_id": "repository-submodule-001",
+        "pinned_commit": "0123456789abcdef0123456789abcdef01234567",
+        "dirty_manifest_digest": "1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    ],
+    "deleted_files": [
+      {
+        "path": "src/removed.py",
+        "provenance": "dirty",
+        "base_digest": "1212121212121212121212121212121212121212121212121212121212121212"
+      }
+    ],
+    "inclusion_rules": {
+      "included_classes": ["tracked", "dirty", "declared_untracked"],
+      "excluded_classes": ["ignored", "secret", "cache"],
+      "explicitly_included_paths": ["generated/required.json"]
+    },
+    "exclusions": [
+      {
+        "path": ".forge",
+        "reason": "projection"
+      }
+    ]
+  },
+  "evidence-v1.json": {
+    "schema_version": "evidence-v1",
+    "evidence_id": "evidence-001",
+    "work_item_id": "work-001",
+    "evidence_type": "command",
+    "subject_id": "source-001",
+    "subject_digest": "9999999999999999999999999999999999999999999999999999999999999999",
+    "operation": {
+      "kind": "command",
+      "description": "python3 -m unittest projects/forge-skill/tests/test_contracts.py -v"
+    },
+    "execution_envelope": {
+      "input_manifest_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "tool_versions": [
+        {"name": "python3", "version": "3.12.3"}
+      ],
+      "runtime_versions": [
+        {"name": "cpython", "version": "3.12.3"}
+      ],
+      "environment_identity": {
+        "identity": "linux-x86_64",
+        "allowlist_digest": "2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "configuration_revisions": [
+        {"identity": "unittest-config", "revision": "default"}
+      ],
+      "provider_revisions": [],
+      "external_revision": {
+        "service_identity": "local-runtime",
+        "deployment_identity": "test-process",
+        "revision": "process-001"
+      }
+    },
+    "started_at": "2026-09-03T17:00:00Z",
+    "ended_at": "2026-09-03T17:00:01Z",
+    "result_state": "passed",
+    "exit_code": 0,
+    "output_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "safe_output": "1 test passed",
+    "artifact_refs": [],
+    "residual_risks": [],
+    "observer": {
+      "identity": "controller",
+      "role": "implementer",
+      "harness": "codex",
+      "verifier_adapter": "unittest-v1"
+    }
+  },
+  "verification-ledger-v1.json": {
+    "schema_version": "verification-ledger-v1",
+    "work_item_id": "work-001",
+    "bundle_id": "bundle-001",
+    "bundle_digest": "3333333333333333333333333333333333333333333333333333333333333333",
+    "closure_status": "open",
+    "verification_tier": "standard",
+    "claims": [
+      {
+        "claim_id": "claim-001",
+        "requirement_ids": ["requirement-001"],
+        "intended": "Unknown fields are rejected.",
+        "observed": "The validator rejected the probe.",
+        "supporting_evidence_ids": ["evidence-001"],
+        "contradicting_evidence_ids": [],
+        "proof_contract": {
+          "proof_contract_id": "proof-contract-001",
+          "claim_kind": "contract_validation",
+          "subjects": [
+            {
+              "subject_id": "source-001",
+              "subject_digest": "4444444444444444444444444444444444444444444444444444444444444444"
+            }
+          ],
+          "preconditions": ["Schema files parse."],
+          "assertions": ["Unknown fields fail."],
+          "required_verifier_adapters": ["unittest-v1"],
+          "coverage_obligations": ["All fifteen schemas."],
+          "applicability_window": {
+            "starts_at": "2026-09-03T17:00:00Z",
+            "expires_at": null
+          }
+        },
+        "status": "verified",
+        "verification_tier": "standard",
+        "freshness_fingerprints": ["manifest-001"],
+        "invalidation_dependencies": ["schemas"],
+        "gaps": [],
+        "counterexamples_attempted": ["future_field"],
+        "next_action": null
+      }
+    ]
+  },
+  "verification-bundle-v1.json": {
+    "schema_version": "verification-bundle-v1",
+    "bundle_id": "bundle-001",
+    "work_item_id": "work-001",
+    "oracle_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "input_manifest_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "created_at": "2026-09-03T17:00:00Z",
+    "subject_graph": {
+      "nodes": [
+        {
+          "subject_id": "source-001",
+          "kind": "source",
+          "identity": "manifest-001",
+          "subject_digest": "4444444444444444444444444444444444444444444444444444444444444444",
+          "capture_method": "input-manifest-v1",
+          "applicability_window": {
+            "starts_at": "2026-09-03T17:00:00Z",
+            "expires_at": null
+          },
+          "locator": "object:source-001"
+        }
+      ],
+      "edges": []
+    },
+    "proof_contract_refs": [
+      {
+        "proof_contract_id": "proof-contract-001",
+        "proof_contract_digest": "5555555555555555555555555555555555555555555555555555555555555555",
+        "claim_ids": ["claim-001"]
+      }
+    ]
+  },
+  "verifier-attestation-v1.json": {
+    "schema_version": "verifier-attestation-v1",
+    "attestation_id": "attestation-001",
+    "bundle_id": "bundle-001",
+    "bundle_digest": "3333333333333333333333333333333333333333333333333333333333333333",
+    "subject_bindings": [
+      {
+        "subject_id": "source-001",
+        "subject_digest": "4444444444444444444444444444444444444444444444444444444444444444"
+      }
+    ],
+    "verifier": {
+      "identity": "verifier-001",
+      "context_id": "context-002",
+      "process_id": "process-002",
+      "harness": "codex",
+      "independent": true
+    },
+    "claim_results": [
+      {
+        "claim_id": "claim-001",
+        "status": "verified",
+        "verification_tier": "independent",
+        "evidence_ids": ["evidence-001"]
+      }
+    ],
+    "created_at": "2026-09-03T17:00:00Z",
+    "attestation_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "external-action-v1.json": {
+    "schema_version": "external-action-v1",
+    "action_id": "action-001",
+    "work_item_id": "work-001",
+    "action_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "action_class": "external_reversible_write",
+    "target": "remote-branch",
+    "approval_id": "approval-001",
+    "state": "intent_persisted",
+    "idempotency_key": "action-key-001",
+    "provider_id": null,
+    "expires_at": "2026-09-03T18:00:00Z",
+    "nonce": "nonce-002",
+    "transitions": [
+      {
+        "state": "planned",
+        "timestamp": "2026-09-03T17:00:00Z",
+        "evidence_id": null
+      },
+      {
+        "state": "intent_persisted",
+        "timestamp": "2026-09-03T17:00:01Z",
+        "evidence_id": "evidence-001"
+      }
+    ]
+  },
+  "forge-feedback-v1.json": {
+    "schema_version": "forge-feedback-v1",
+    "feedback_id": "feedback-001",
+    "work_item_id": "work-001",
+    "expected_state_root": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "target_ids": ["claim-001"],
+    "proposals": [
+      {
+        "field_path": "claims.claim-001.claim_text",
+        "operation": "replace",
+        "value_json": "\"Reject every unknown field.\""
+      }
+    ],
+    "submitted_by": {
+      "kind": "user",
+      "identity": "user-001",
+      "channel": "downloaded_json"
+    }
+  },
+  "specialist-manifest-v1.json": {
+    "schema_version": "specialist-manifest-v1",
+    "manifest_id": "specialist-001",
+    "capability_id": "contract-review",
+    "entry_point": "skills/reviewer/SKILL.md",
+    "input_schema_id": "urn:forge:schema:verification-bundle-v1",
+    "output_schema_id": "urn:forge:schema:agent-envelope-v1",
+    "side_effect_class": "local_read",
+    "read_sets": ["schemas/**"],
+    "write_sets": [],
+    "resource_sets": [],
+    "nested_invocation_policy": "forbidden",
+    "verifier_claim_types": ["contract_validation"],
+    "required_tools": ["python3"],
+    "source": {
+      "uri": "package:forge",
+      "version": "1",
+      "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "license": "MIT",
+    "trust": {
+      "mode": "allowlisted",
+      "approval_id": null
+    }
+  },
+  "agent-envelope-v1.json": {
+    "schema_version": "agent-envelope-v1",
+    "envelope_id": "envelope-001",
+    "work_item_id": "work-001",
+    "agent_run_id": "agent-run-001",
+    "role": "contract-reviewer",
+    "input_bundle_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "status": "completed",
+    "assumptions": [],
+    "unknowns": [],
+    "source_refs": ["schemas/approval-v1.json"],
+    "findings": [
+      {
+        "finding_id": "finding-001",
+        "claim": "Approval authority is closed.",
+        "evidence_ids": ["evidence-001"],
+        "counterevidence_ids": []
+      }
+    ],
+    "patch": {
+      "base_subject_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "path_lease_ids": ["lease-001"],
+      "digest": null
+    },
+    "outputs": [
+      {
+        "schema_id": "urn:forge:schema:verification-ledger-v1",
+        "object_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      }
+    ],
+    "created_at": "2026-09-03T17:00:00Z"
+  }
+}

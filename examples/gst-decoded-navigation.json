@@ -1,0 +1,185 @@
+{
+  "schema_version": "forge-report-v1",
+  "title": "GST Decoded chapter navigation",
+  "mode": "task",
+  "summary": "Turn an 18-chapter scrolling course into a navigable learning journey without disrupting its cinematic reading experience.",
+  "status": "active",
+  "phase": "design",
+  "updated_at": "2026-09-04T03:45:00Z",
+  "brief": {
+    "outcome": "Let readers see where they are, jump between chapters, and return to the same chapter reliably on desktop and mobile.",
+    "users": [
+      "First-time readers moving through the course sequentially",
+      "Returning readers revisiting a specific GST topic"
+    ],
+    "constraints": [
+      "Preserve the existing React, TypeScript, Vite, GSAP, and Framer Motion stack",
+      "Do not obscure chapter content or compete with the storytelling",
+      "Respect keyboard navigation and reduced-motion preferences"
+    ]
+  },
+  "requirements": [
+    {
+      "id": "REQ-01",
+      "text": "Keep the active chapter synchronized while the reader scrolls through all 18 chapters.",
+      "status": "verified",
+      "proof": "The repository already centralizes chapter metadata and observes chapter sections through useChapterInView."
+    },
+    {
+      "id": "REQ-02",
+      "text": "Encode chapter selection in the URL so deep links and browser history remain useful.",
+      "status": "pending"
+    },
+    {
+      "id": "REQ-03",
+      "text": "Expose a compact mobile chapter picker and a persistent desktop rail with the same interaction model.",
+      "status": "pending"
+    }
+  ],
+  "architecture": {
+    "overview": "Keep chapterMeta as the source of truth, add a small navigation controller that reconciles viewport state with the URL, and let desktop and mobile views consume the same controller rather than duplicating behavior.",
+    "components": [
+      {
+        "name": "Chapter navigation controller",
+        "responsibility": "Resolve initial deep links, update the active chapter, and prevent URL-scroll feedback loops.",
+        "interfaces": [
+          "chapterMeta",
+          "useChapterInView",
+          "history.replaceState",
+          "scrollIntoView"
+        ],
+        "failure_boundary": "An invalid chapter parameter falls back to the first chapter without breaking render.",
+        "status": "reviewed"
+      },
+      {
+        "name": "Desktop chapter rail",
+        "responsibility": "Show location, chapter titles, completion context, and direct navigation without covering course content.",
+        "status": "pending"
+      },
+      {
+        "name": "Mobile chapter sheet",
+        "responsibility": "Offer the same chapter map in a touch-friendly progressive disclosure pattern.",
+        "status": "pending"
+      }
+    ],
+    "decisions": [
+      "Use the existing chapter metadata instead of introducing a second navigation registry.",
+      "Use replaceState during passive scrolling and pushState only for explicit chapter jumps.",
+      "Keep motion decorative; navigation state must remain correct when motion is disabled."
+    ]
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-01",
+      "text": "Opening a valid chapter deep link scrolls to that chapter and marks it active.",
+      "status": "pending"
+    },
+    {
+      "id": "AC-02",
+      "text": "Scrolling across chapter boundaries updates the URL without filling browser history with passive updates.",
+      "status": "pending"
+    },
+    {
+      "id": "AC-03",
+      "text": "Every navigation control is keyboard reachable, visibly focused, and labeled with chapter number and title.",
+      "status": "pending"
+    },
+    {
+      "id": "AC-04",
+      "text": "At 390px width, the course has no horizontal overflow and the chapter picker does not cover reading content when closed.",
+      "status": "pending"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T-01",
+      "title": "Unify URL and viewport chapter state",
+      "owner": "implementation agent",
+      "verification": "Unit tests for initial URL, invalid URL, passive scroll, and explicit jump behavior.",
+      "status": "pending"
+    },
+    {
+      "id": "T-02",
+      "title": "Refine desktop and mobile navigation surfaces",
+      "owner": "frontend agent",
+      "depends_on": [
+        "T-01"
+      ],
+      "verification": "Keyboard walkthrough and Playwright checks at desktop and 390px viewports.",
+      "status": "pending"
+    },
+    {
+      "id": "T-03",
+      "title": "Run adversarial navigation verification",
+      "owner": "independent verifier",
+      "depends_on": [
+        "T-01",
+        "T-02"
+      ],
+      "verification": "Reload, back/forward, rapid chapter jumps, reduced motion, and invalid deep-link cases.",
+      "status": "pending"
+    }
+  ],
+  "critiques": [
+    {
+      "source": "Product critic",
+      "finding": "A large always-open mobile table of contents would interrupt the course more than it helps.",
+      "disposition": "Use a compact current-chapter trigger and reveal the full list only on demand.",
+      "status": "accepted"
+    },
+    {
+      "source": "Architecture critic",
+      "finding": "Two independent active-chapter states would drift during smooth scrolling and browser navigation.",
+      "disposition": "Centralize reconciliation in one controller consumed by both responsive surfaces.",
+      "status": "accepted"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "DEC-01",
+      "title": "Preserve the course as one continuous document",
+      "rationale": "The cinematic narrative depends on uninterrupted scrolling; navigation should orient readers rather than turn chapters into separate routes.",
+      "status": "accepted"
+    }
+  ],
+  "verification": [
+    {
+      "name": "Repository inspection",
+      "status": "verified",
+      "evidence": "Inspected clean commit 671c35e: 18 chapter modules, chapterMeta, ChapterNav, useChapterInView, and scrollIntoView are present."
+    },
+    {
+      "name": "Proposed behavior",
+      "status": "unverified",
+      "evidence": "This report is the implementation contract; no GST Decoded source files were changed."
+    }
+  ],
+  "files": [
+    {
+      "path": "src/components/layout/ChapterNav.tsx",
+      "change": "proposed",
+      "status": "reviewed"
+    },
+    {
+      "path": "src/hooks/useChapterInView.ts",
+      "change": "proposed",
+      "status": "reviewed"
+    },
+    {
+      "path": "src/config/theme.ts",
+      "change": "reuse existing chapter metadata",
+      "status": "verified"
+    }
+  ],
+  "evidence": [
+    {
+      "name": "Read-only repository analysis",
+      "type": "source-inspection",
+      "detail": "The demo was generated against the public GST Decoded repository without modifying its worktree.",
+      "status": "fresh"
+    }
+  ],
+  "gaps": [
+    "The proposed interaction still requires implementation and browser-level verification in GST Decoded."
+  ]
+}

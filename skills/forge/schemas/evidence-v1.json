@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:forge:schema:evidence-v1",
+  "title": "Forge evidence record v1",
+  "description": "An immutable observation with the performed operation, complete execution envelope, result, residual risks, and observer provenance.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "evidence_id",
+    "work_item_id",
+    "evidence_type",
+    "subject_id",
+    "subject_digest",
+    "operation",
+    "execution_envelope",
+    "started_at",
+    "ended_at",
+    "result_state",
+    "exit_code",
+    "output_digest",
+    "safe_output",
+    "artifact_refs",
+    "residual_risks",
+    "observer"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "const": "evidence-v1"},
+    "evidence_id": {"$ref": "#/$defs/non_empty_string"},
+    "work_item_id": {"$ref": "#/$defs/non_empty_string"},
+    "evidence_type": {"type": "string", "enum": ["command", "interaction", "inspection", "artifact", "provider_receipt"]},
+    "subject_id": {"$ref": "#/$defs/non_empty_string"},
+    "subject_digest": {"$ref": "#/$defs/sha256"},
+    "operation": {"$ref": "#/$defs/operation"},
+    "execution_envelope": {"$ref": "#/$defs/execution_envelope"},
+    "started_at": {"$ref": "#/$defs/non_empty_string"},
+    "ended_at": {"$ref": "#/$defs/non_empty_string"},
+    "result_state": {"type": "string", "enum": ["passed", "failed", "inconclusive"]},
+    "exit_code": {"type": ["integer", "null"]},
+    "output_digest": {"$ref": "#/$defs/sha256"},
+    "safe_output": {"type": "string"},
+    "artifact_refs": {"$ref": "#/$defs/string_list"},
+    "residual_risks": {"$ref": "#/$defs/string_list"},
+    "observer": {"$ref": "#/$defs/observer"}
+  },
+  "$defs": {
+    "non_empty_string": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
+    "string_list": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/non_empty_string"},
+      "uniqueItems": true
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "description"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["command", "interaction", "inspection", "artifact_capture", "provider_query"]
+        },
+        "description": {"$ref": "#/$defs/non_empty_string"}
+      }
+    },
+    "version_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"$ref": "#/$defs/non_empty_string"},
+        "version": {"$ref": "#/$defs/non_empty_string"}
+      }
+    },
+    "revision_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "revision"],
+      "properties": {
+        "identity": {"$ref": "#/$defs/non_empty_string"},
+        "revision": {"$ref": "#/$defs/non_empty_string"}
+      }
+    },
+    "environment_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "allowlist_digest"],
+      "properties": {
+        "identity": {"$ref": "#/$defs/non_empty_string"},
+        "allowlist_digest": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "external_revision": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["service_identity", "deployment_identity", "revision"],
+      "properties": {
+        "service_identity": {"$ref": "#/$defs/non_empty_string"},
+        "deployment_identity": {"$ref": "#/$defs/non_empty_string"},
+        "revision": {"$ref": "#/$defs/non_empty_string"}
+      }
+    },
+    "execution_envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_manifest_digest",
+        "tool_versions",
+        "runtime_versions",
+        "environment_identity",
+        "configuration_revisions",
+        "provider_revisions",
+        "external_revision"
+      ],
+      "properties": {
+        "input_manifest_digest": {"$ref": "#/$defs/sha256"},
+        "tool_versions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/version_identity"},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "runtime_versions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/version_identity"},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "environment_identity": {"$ref": "#/$defs/environment_identity"},
+        "configuration_revisions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/revision_identity"},
+          "uniqueItems": true
+        },
+        "provider_revisions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/revision_identity"},
+          "uniqueItems": true
+        },
+        "external_revision": {"$ref": "#/$defs/external_revision"}
+      }
+    },
+    "observer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "role", "harness", "verifier_adapter"],
+      "properties": {
+        "identity": {"$ref": "#/$defs/non_empty_string"},
+        "role": {"$ref": "#/$defs/non_empty_string"},
+        "harness": {"$ref": "#/$defs/non_empty_string"},
+        "verifier_adapter": {"$ref": "#/$defs/non_empty_string"}
+      }
+    }
+  }
+}

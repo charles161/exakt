@@ -1,0 +1,20 @@
+{
+  "name": "forge",
+  "version": "0.1.0",
+  "description": "Portable verification-first engineering workflow",
+  "author": {
+    "name": "Charles MJ"
+  },
+  "license": "MIT",
+  "interface": {
+    "displayName": "Forge",
+    "shortDescription": "Verification-first engineering workflow",
+    "longDescription": "Guide engineering work through evidence, tests, implementation, and review.",
+    "developerName": "Charles MJ",
+    "category": "Developer Tools",
+    "capabilities": [],
+    "defaultPrompt": [
+      "Use Forge to implement this change with verification-first engineering."
+    ]
+  }
+}

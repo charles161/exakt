@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:forge:schema:product-graph-v1",
+  "title": "Forge product slice graph v1",
+  "description": "Product slices, pinned parent oracle rows, dependencies, budgets, and closure states.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "product_id", "oracle_id", "closure_status", "slices"],
+  "properties": {
+    "schema_version": {"type": "string", "const": "product-graph-v1"},
+    "product_id": {"$ref": "#/$defs/non_empty_string"},
+    "oracle_id": {"$ref": "#/$defs/non_empty_string"},
+    "closure_status": {"$ref": "#/$defs/closure_status"},
+    "slices": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/slice"},
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "non_empty_string": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
+    "string_list": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/non_empty_string"},
+      "uniqueItems": true
+    },
+    "non_empty_string_list": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/non_empty_string"},
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "closure_status": {
+      "type": "string",
+      "enum": ["open", "verified_complete", "independently_verified_complete", "closed_with_unverified_items", "blocked", "failed", "cancelled"]
+    },
+    "oracle_row_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["row_id", "row_digest"],
+      "properties": {
+        "row_id": {"$ref": "#/$defs/non_empty_string"},
+        "row_digest": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "oracle_row_bindings": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/oracle_row_binding"},
+      "uniqueItems": true
+    },
+    "closure_policy": {
+      "type": "string",
+      "enum": ["required", "optional", "deferred"]
+    },
+    "closure_receipt": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": [
+        "child_terminal_state_root",
+        "child_oracle_id",
+        "child_oracle_digest",
+        "verification_bundle_id",
+        "verification_bundle_digest",
+        "closure_status"
+      ],
+      "properties": {
+        "child_terminal_state_root": {"$ref": "#/$defs/sha256"},
+        "child_oracle_id": {"$ref": "#/$defs/non_empty_string"},
+        "child_oracle_digest": {"$ref": "#/$defs/sha256"},
+        "verification_bundle_id": {"$ref": "#/$defs/non_empty_string"},
+        "verification_bundle_digest": {"$ref": "#/$defs/sha256"},
+        "closure_status": {"$ref": "#/$defs/closure_status"}
+      }
+    },
+    "action_budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_agent_invocations",
+        "max_controller_commands",
+        "max_wall_clock_seconds",
+        "max_external_writes",
+        "max_monetary_amount",
+        "currency"
+      ],
+      "properties": {
+        "max_agent_invocations": {"type": "integer", "minimum": 0},
+        "max_controller_commands": {"type": "integer", "minimum": 0},
+        "max_wall_clock_seconds": {"type": "integer", "minimum": 0},
+        "max_external_writes": {"type": "integer", "minimum": 0},
+        "max_monetary_amount": {"type": ["string", "null"]},
+        "currency": {"type": ["string", "null"]}
+      }
+    },
+    "slice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "slice_id",
+        "target_roots",
+        "task_work_item_id",
+        "parent_oracle_version",
+        "parent_oracle_digest",
+        "inherited_oracle_rows",
+        "local_oracle_rows",
+        "dependencies",
+        "deliverable_boundary",
+        "approval_id",
+        "action_budget",
+        "closure_policy",
+        "closure_status",
+        "closure_receipt"
+      ],
+      "properties": {
+        "slice_id": {"$ref": "#/$defs/non_empty_string"},
+        "target_roots": {"$ref": "#/$defs/non_empty_string_list"},
+        "task_work_item_id": {"type": ["string", "null"]},
+        "parent_oracle_version": {"type": "integer", "minimum": 1},
+        "parent_oracle_digest": {"$ref": "#/$defs/sha256"},
+        "inherited_oracle_rows": {"$ref": "#/$defs/oracle_row_bindings"},
+        "local_oracle_rows": {"$ref": "#/$defs/oracle_row_bindings"},
+        "dependencies": {"$ref": "#/$defs/string_list"},
+        "deliverable_boundary": {"$ref": "#/$defs/non_empty_string"},
+        "approval_id": {"$ref": "#/$defs/non_empty_string"},
+        "action_budget": {"$ref": "#/$defs/action_budget"},
+        "closure_policy": {"$ref": "#/$defs/closure_policy"},
+        "closure_status": {"$ref": "#/$defs/closure_status"},
+        "closure_receipt": {"$ref": "#/$defs/closure_receipt"}
+      }
+    }
+  }
+}

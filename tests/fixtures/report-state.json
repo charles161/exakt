@@ -1,0 +1,135 @@
+{
+  "schema_version": "forge-report-v1",
+  "title": "Payment recovery studio",
+  "mode": "product",
+  "summary": "Make interrupted payments recoverable without charging a customer twice.",
+  "status": "partial",
+  "phase": "verify",
+  "updated_at": "2026-09-04T09:30:00Z",
+  "brief": {
+    "outcome": "Resume every interrupted payment from durable state.",
+    "users": [
+      "Support operators",
+      "Customers returning after an interrupted checkout"
+    ],
+    "constraints": [
+      "Never retry an unknown charge blindly",
+      "Keep canonical state outside the repository"
+    ]
+  },
+  "requirements": [
+    {
+      "id": "REQ-01",
+      "text": "Persist intent before provider I/O.",
+      "status": "verified"
+    },
+    {
+      "id": "REQ-02",
+      "text": "Reconcile an ambiguous provider response before retry.",
+      "status": "pending"
+    }
+  ],
+  "architecture": {
+    "overview": "A durable controller records intent, invokes the provider, then reconciles its receipt.",
+    "components": [
+      {
+        "name": "Journal",
+        "responsibility": "Hash-chained source of truth",
+        "status": "verified"
+      },
+      {
+        "name": "Provider adapter",
+        "responsibility": "Idempotent send and lookup",
+        "status": "partial"
+      }
+    ],
+    "decisions": [
+      "Unknown transmissions pause for reconciliation.",
+      "Repository projections are never canonical."
+    ]
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-01",
+      "text": "A crash after send resumes as unknown, not failed.",
+      "status": "verified"
+    },
+    {
+      "id": "AC-02",
+      "text": "A non-idempotent provider is never retried automatically.",
+      "status": "unverified"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T-01",
+      "title": "Persist action intent",
+      "status": "verified",
+      "owner": "controller"
+    },
+    {
+      "id": "T-02",
+      "title": "Exercise provider reconciliation",
+      "status": "implementing",
+      "owner": "reliability verifier",
+      "depends_on": ["T-01"]
+    },
+    {
+      "id": "T-03",
+      "title": "Run rollback drill",
+      "status": "blocked",
+      "owner": "operator",
+      "depends_on": ["T-02"]
+    }
+  ],
+  "critiques": [
+    {
+      "source": "Reliability critic",
+      "finding": "A timeout is not evidence that the provider did nothing.",
+      "status": "open"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "DEC-01",
+      "title": "Require provider lookup after ambiguous send",
+      "status": "accepted",
+      "rationale": "Prevents duplicate charges."
+    }
+  ],
+  "verification": [
+    {
+      "name": "State-machine unit suite",
+      "status": "verified",
+      "evidence": "24 deterministic cases passed."
+    },
+    {
+      "name": "Provider sandbox receipt",
+      "status": "stale",
+      "evidence": "Receipt predates the adapter change."
+    },
+    {
+      "name": "Timeout behavior",
+      "status": "contradicted",
+      "evidence": "Two runs disagree about the returned provider state."
+    }
+  ],
+  "files": [
+    {
+      "path": "skills/forge/scripts/actions.py",
+      "change": "modified",
+      "status": "reviewed"
+    }
+  ],
+  "evidence": [
+    {
+      "name": "Crash-window transcript",
+      "type": "test-log",
+      "status": "fresh",
+      "detail": "Bound to the current source digest."
+    }
+  ],
+  "gaps": [
+    "Rollback drill has not been observed on the provider sandbox."
+  ]
+}

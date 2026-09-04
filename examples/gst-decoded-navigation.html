@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="Forge local report renderer">
+  <title>GST Decoded chapter navigation — Forge report</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f3f0e8;
+      --paper-deep: #e8e2d6;
+      --ink: #1d201e;
+      --ink-soft: #666962;
+      --line: #c9c3b7;
+      --line-strong: #969187;
+      --accent: #ce4a2b;
+      --accent-dark: #8c2d19;
+      --verified: #315c45;
+      --warning: #8a570e;
+      --danger: #9e3129;
+      --cool: #425d73;
+      --shadow: 0 18px 55px rgba(48, 42, 32, 0.09);
+      --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Baskerville, Georgia, serif;
+      --sans: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+      --mono: "IBM Plex Mono", "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 1rem;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background:
+        linear-gradient(90deg, transparent 0 49.9%, rgba(55, 48, 39, 0.035) 50%, transparent 50.1%),
+        radial-gradient(circle at 11% 8%, rgba(206, 74, 43, 0.08), transparent 24rem),
+        var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.55;
+    }
+
+    body::before {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image:
+        repeating-linear-gradient(17deg, rgba(35, 32, 27, 0.018) 0 1px, transparent 1px 5px),
+        repeating-linear-gradient(103deg, rgba(255, 255, 255, 0.12) 0 1px, transparent 1px 7px);
+      content: "";
+      pointer-events: none;
+    }
+
+    a { color: inherit; }
+
+    button,
+    textarea { font: inherit; }
+
+    button { color: inherit; }
+
+    :focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 4px;
+    }
+
+    .skip-link {
+      position: fixed;
+      top: 0.75rem;
+      left: 0.75rem;
+      z-index: 30;
+      padding: 0.65rem 0.9rem;
+      transform: translateY(-180%);
+      border: 1px solid var(--ink);
+      background: var(--paper);
+      font-weight: 700;
+    }
+
+    .skip-link:focus { transform: translateY(0); }
+
+    .masthead {
+      width: min(100% - 2rem, 92rem);
+      margin: 0 auto;
+      padding: clamp(2.2rem, 6vw, 6rem) 0 clamp(2rem, 5vw, 4.5rem);
+      border-bottom: 1px solid var(--line-strong);
+    }
+
+    .masthead-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(15rem, 24rem);
+      gap: clamp(2rem, 8vw, 8rem);
+      align-items: end;
+    }
+
+    .kicker,
+    .section-index,
+    .micro-label,
+    .nav-label {
+      margin: 0;
+      color: var(--accent-dark);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      line-height: 1.4;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p { overflow-wrap: anywhere; }
+
+    h1 {
+      max-width: 15ch;
+      margin: 0.7rem 0 0;
+      font-family: var(--serif);
+      font-size: clamp(3.2rem, 8.7vw, 8.8rem);
+      font-weight: 500;
+      letter-spacing: -0.065em;
+      line-height: 0.87;
+    }
+
+    .masthead-summary {
+      margin: 0;
+      padding-top: 1rem;
+      border-top: 3px solid var(--ink);
+      font-family: var(--serif);
+      font-size: clamp(1.15rem, 2vw, 1.55rem);
+      line-height: 1.35;
+    }
+
+    .meta-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem 1.4rem;
+      margin: 1.5rem 0 0;
+      color: var(--ink-soft);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+    }
+
+    .studio {
+      display: grid;
+      grid-template-columns: minmax(13.5rem, 18rem) minmax(0, 1fr);
+      gap: clamp(2rem, 5vw, 5rem);
+      width: min(100% - 2rem, 92rem);
+      margin: 0 auto;
+      padding: clamp(2rem, 5vw, 5rem) 0 7rem;
+    }
+
+    .rail {
+      min-width: 0;
+    }
+
+    .rail-inner {
+      position: sticky;
+      top: 1rem;
+    }
+
+    .state-card {
+      position: relative;
+      overflow: hidden;
+      padding: 1.25rem;
+      border: 1px solid var(--line-strong);
+      background: rgba(250, 248, 242, 0.62);
+      box-shadow: var(--shadow);
+    }
+
+    .state-card::after {
+      position: absolute;
+      right: -2rem;
+      bottom: -3.7rem;
+      color: rgba(206, 74, 43, 0.08);
+      content: "F";
+      font-family: var(--serif);
+      font-size: 11rem;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .state-card > * { position: relative; z-index: 1; }
+
+    .state-card h2 {
+      margin: 0.35rem 0 1rem;
+      font-family: var(--serif);
+      font-size: 2.15rem;
+      font-weight: 500;
+      letter-spacing: -0.035em;
+      line-height: 1;
+    }
+
+    .state-card dl {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.45rem 1rem;
+      margin: 1.2rem 0 0;
+      font-size: 0.84rem;
+    }
+
+    .state-card dt { color: var(--ink-soft); }
+    .state-card dd { margin: 0; font-family: var(--mono); font-weight: 700; }
+
+    .attention {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-left: 4px solid var(--danger);
+      background: rgba(158, 49, 41, 0.07);
+    }
+
+    .attention p { margin: 0.35rem 0 0; font-size: 0.86rem; }
+
+    .phase-nav { margin-top: 2rem; }
+
+    .phase-nav ol {
+      margin: 0.7rem 0 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: views;
+    }
+
+    .phase-nav li { counter-increment: views; }
+
+    .phase-nav a {
+      display: grid;
+      grid-template-columns: 2rem 1fr;
+      gap: 0.55rem;
+      align-items: baseline;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid var(--line);
+      text-decoration: none;
+    }
+
+    .phase-nav a::before {
+      color: var(--accent-dark);
+      content: "0" counter(views);
+      font-family: var(--mono);
+      font-size: 0.68rem;
+    }
+
+    .phase-nav a:hover { padding-left: 0.3rem; color: var(--accent-dark); }
+
+    .report {
+      min-width: 0;
+    }
+
+    .report-view {
+      min-width: 0;
+      padding: clamp(1.5rem, 4vw, 3.5rem) 0 clamp(3rem, 8vw, 7rem);
+      border-top: 1px solid var(--line-strong);
+      animation: rise-in 600ms both;
+    }
+
+    .report-view:first-child { border-top: 0; padding-top: 0; }
+    .report-view:nth-child(2) { animation-delay: 60ms; }
+    .report-view:nth-child(3) { animation-delay: 120ms; }
+    .report-view:nth-child(4) { animation-delay: 180ms; }
+
+    @keyframes rise-in {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-heading {
+      display: grid;
+      grid-template-columns: 4rem minmax(0, 1fr);
+      gap: 1rem;
+      align-items: start;
+      margin-bottom: 2rem;
+    }
+
+    .section-heading h2 {
+      max-width: 18ch;
+      margin: -0.13em 0 0;
+      font-family: var(--serif);
+      font-size: clamp(2.45rem, 5.6vw, 5.8rem);
+      font-weight: 500;
+      letter-spacing: -0.055em;
+      line-height: 0.93;
+    }
+
+    .lede {
+      max-width: 64ch;
+      margin: 0 0 2rem 5rem;
+      color: var(--ink-soft);
+      font-family: var(--serif);
+      font-size: 1.14rem;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .panel {
+      min-width: 0;
+      padding: clamp(1rem, 2.4vw, 1.6rem);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .panel h3,
+    .subhead {
+      margin: 0 0 1rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .panel p:last-child { margin-bottom: 0; }
+
+    .plain-list {
+      display: grid;
+      gap: 0.65rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .plain-list li {
+      position: relative;
+      padding-left: 1.3rem;
+    }
+
+    .plain-list li::before {
+      position: absolute;
+      top: 0;
+      left: 0;
+      color: var(--accent);
+      content: "↳";
+      font-family: var(--mono);
+    }
+
+    .record-stack { display: grid; gap: 0.7rem; }
+
+    details.record {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    details.record[open] { border-color: var(--line-strong); }
+
+    details.record summary {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 1rem;
+      align-items: center;
+      padding: 0.95rem 1rem;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    details.record summary::-webkit-details-marker { display: none; }
+
+    details.record summary::before {
+      position: absolute;
+      transform: translateX(-1.45rem);
+      color: var(--accent);
+      content: "+";
+      font-family: var(--mono);
+      font-weight: 700;
+    }
+
+    details.record[open] summary::before { content: "−"; }
+
+    .record-title { min-width: 0; font-weight: 700; }
+
+    .record-id {
+      display: block;
+      margin-bottom: 0.15rem;
+      color: var(--ink-soft);
+      font-family: var(--mono);
+      font-size: 0.67rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .record-body {
+      padding: 0 1rem 1rem;
+      border-top: 1px solid var(--line);
+      color: var(--ink-soft);
+    }
+
+    .record-body p { margin: 0.85rem 0 0; }
+
+    .status {
+      display: inline-flex;
+      gap: 0.38rem;
+      align-items: center;
+      width: max-content;
+      max-width: 100%;
+      padding: 0.2rem 0.52rem;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      color: var(--cool);
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.045em;
+      line-height: 1.25;
+      text-transform: uppercase;
+      white-space: normal;
+    }
+
+    .status[data-status="verified"],
+    .status[data-status="fresh"],
+    .status[data-status="accepted"],
+    .status[data-status="reviewed"] { color: var(--verified); }
+
+    .status[data-status="blocked"],
+    .status[data-status="failed"],
+    .status[data-status="contradicted"] { color: var(--danger); }
+
+    .status[data-status="stale"],
+    .status[data-status="partial"],
+    .status[data-status="unverified"],
+    .status[data-status="pending"] { color: var(--warning); }
+
+    .progress-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border-top: 1px solid var(--line-strong);
+      border-left: 1px solid var(--line-strong);
+    }
+
+    .metric {
+      min-width: 0;
+      padding: 1rem;
+      border-right: 1px solid var(--line-strong);
+      border-bottom: 1px solid var(--line-strong);
+    }
+
+    .metric strong {
+      display: block;
+      font-family: var(--serif);
+      font-size: 2.8rem;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .metric span { color: var(--ink-soft); font-size: 0.75rem; text-transform: uppercase; }
+
+    .risk-list {
+      margin: 0 0 1.5rem;
+      padding: 1.25rem 1.25rem 1.25rem 2.75rem;
+      border: 1px solid rgba(158, 49, 41, 0.45);
+      background: rgba(158, 49, 41, 0.055);
+    }
+
+    .risk-list li + li { margin-top: 0.55rem; }
+
+    .feedback {
+      margin-top: 3rem;
+      padding: clamp(1.25rem, 4vw, 2.5rem);
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .feedback h2 {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(2rem, 5vw, 4.5rem);
+      font-weight: 500;
+      letter-spacing: -0.05em;
+      line-height: 1;
+    }
+
+    .feedback p { max-width: 65ch; color: #c8c5bc; }
+
+    .feedback label { display: block; margin: 1.4rem 0 0.5rem; font-weight: 700; }
+
+    .feedback textarea {
+      width: 100%;
+      min-height: 8rem;
+      resize: vertical;
+      padding: 0.85rem;
+      border: 1px solid #77766f;
+      border-radius: 0;
+      background: #292c29;
+      color: #f5f0e6;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 0.8rem;
+    }
+
+    .button-row button {
+      padding: 0.65rem 0.9rem;
+      border: 1px solid var(--paper);
+      background: transparent;
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .button-row button:hover { background: var(--paper); color: var(--ink); }
+    .button-row .primary { border-color: var(--accent); background: var(--accent); color: white; }
+    .feedback-status { min-height: 1.5em; margin: 0.7rem 0 0; font-family: var(--mono); font-size: 0.75rem; }
+
+    .empty {
+      margin: 0;
+      padding: 1rem;
+      border: 1px dashed var(--line-strong);
+      color: var(--ink-soft);
+      font-family: var(--serif);
+      font-style: italic;
+    }
+
+    .footer-note {
+      margin: 2rem 0 0;
+      color: var(--ink-soft);
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      text-align: right;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 900px) {
+      .masthead-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .studio { grid-template-columns: 12rem minmax(0, 1fr); gap: 2rem; }
+      .split { grid-template-columns: 1fr; }
+      .progress-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 720px) {
+      body { font-size: 15px; }
+      .masthead,
+      .studio { width: min(100% - 1.25rem, 92rem); }
+      .masthead { padding-top: 2rem; }
+      h1 { max-width: 11ch; font-size: clamp(3rem, 17vw, 5.2rem); }
+      .studio { grid-template-columns: minmax(0, 1fr); padding-top: 1rem; }
+      .rail-inner { position: static; }
+      .phase-nav ol {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 0.8rem;
+      }
+      .report-view { padding-bottom: 4rem; }
+      .section-heading { grid-template-columns: 2.5rem minmax(0, 1fr); }
+      .section-heading h2 { font-size: clamp(2.5rem, 13vw, 4.3rem); }
+      .lede { margin-left: 0; }
+      details.record summary { grid-template-columns: minmax(0, 1fr); gap: 0.65rem; }
+      .progress-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .footer-note { text-align: left; }
+    }
+
+    @media (max-width: 410px) {
+      .phase-nav ol { grid-template-columns: 1fr; }
+      .progress-grid { grid-template-columns: 1fr 1fr; }
+      .button-row button { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @media print {
+      body { background: white; }
+      body::before,
+      .phase-nav,
+      .feedback,
+      .skip-link { display: none !important; }
+      .studio { display: block; width: 100%; }
+      .report-view { break-inside: avoid; animation: none; }
+      details.record:not([open]) > *:not(summary) { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#report-main">Skip to report</a>
+  <header class="masthead" data-schema-version="forge-report-v1">
+    <div class="masthead-grid">
+      <div>
+        <p class="kicker">Forge / task studio report</p>
+        <h1>GST Decoded chapter navigation</h1>
+      </div>
+      <div>
+        <p class="masthead-summary">Turn an 18-chapter scrolling course into a navigable learning journey without disrupting its cinematic reading experience.</p>
+        <p class="meta-strip"><span>Phase · design</span><span>Updated · 2026-09-04T03:45:00Z</span></p>
+      </div>
+    </div>
+  </header>
+  <div class="studio">
+    <aside class="rail" aria-label="Report summary">
+      <div class="rail-inner">
+        <div class="state-card">
+          <p class="micro-label">Current state</p>
+          <h2>Design</h2>
+          <span class="status" data-status="active"><span aria-hidden="true">→</span> Active</span>
+          <dl>
+            <dt>Mode</dt><dd>Task</dd>
+            <dt>Tasks</dt><dd>3</dd>
+            <dt>Proof rows</dt><dd>2</dd>
+          </dl>
+          <div class="attention" role="alert"><p class="micro-label">Attention queue</p><p>The proposed interaction still requires implementation and browser-level verification in GST Decoded.</p></div>
+        </div>
+        <nav class="phase-nav" aria-label="Seven report views">
+          <p class="nav-label">Report index</p>
+          <ol><li><a href="#spec">Brief &amp; spec</a></li><li><a href="#architecture">Architecture</a></li><li><a href="#plan">Acceptance &amp; plan</a></li><li><a href="#decisions">Critique &amp; decisions</a></li><li><a href="#progress">Progress</a></li><li><a href="#truth">Verification &amp; truth</a></li><li><a href="#evidence">Files &amp; evidence</a></li></ol>
+        </nav>
+      </div>
+    </aside>
+    <main id="report-main" class="report" tabindex="-1">
+      <section id="spec" data-report-view="spec" class="report-view"><div class="section-heading"><p class="section-index">01</p><h2>Brief &amp; spec</h2></div><p class="lede">Let readers see where they are, jump between chapters, and return to the same chapter reliably on desktop and mobile.</p><div class="split"><div class="panel"><h3>People in the frame</h3><ul class="plain-list"><li>First-time readers moving through the course sequentially</li><li>Returning readers revisiting a specific GST topic</li></ul></div><div class="panel"><h3>Working constraints</h3><ul class="plain-list"><li>Preserve the existing React, TypeScript, Vite, GSAP, and Framer Motion stack</li><li>Do not obscure chapter content or compete with the storytelling</li><li>Respect keyboard navigation and reduced-motion preferences</li></ul></div></div><h3 class="subhead" style="margin-top:2rem">Requirements ledger</h3><div class="record-stack"><details class="record" open><summary><span class="record-title"><span class="record-id">REQ-01</span>Keep the active chapter synchronized while the reader scrolls through all 18 chapters.</span><span class="status" data-status="verified"><span aria-hidden="true">✓</span> Verified</span></summary><div class="record-body"><p><span class="micro-label">Proof</span><br>The repository already centralizes chapter metadata and observes chapter sections through useChapterInView.</p></div></details><details class="record"><summary><span class="record-title"><span class="record-id">REQ-02</span>Encode chapter selection in the URL so deep links and browser history remain useful.</span><span class="status" data-status="pending"><span aria-hidden="true">○</span> Pending</span></summary><div class="record-body"><p>No additional detail recorded.</p></div></details><details class="record"><summary><span class="record-title"><span class="record-id">REQ-03</span>Expose a compact mobile chapter picker and a persistent desktop rail with the same interaction model.</span><span class="status" data-status="pending"><span aria-hidden="true">○</span> Pending</span></summary><div class="record-body"><p>No additional detail recorded.</p></div></details></div></section><section id="architecture" data-report-view="architecture" class="report-view"><div class="section-heading"><p class="section-index">02</p><h2>Architecture</h2></div><p class="lede">Keep chapterMeta as the source of truth, add a small navigation controller that reconciles viewport state with the URL, and let desktop and mobile views consume the same controller rather than duplicating behavior.</p><div class="split"><div><h3 class="subhead">System components</h3><div class="record-stack"><details class="record" open><summary><span class="record-title">Chapter navigation controller</span><span class="status" data-status="reviewed"><span aria-hidden="true">✓</span> Reviewed</span></summary><div class="record-body"><p><span class="micro-label">Responsibility</span><br>Resolve initial deep links, update the active chapter, and prevent URL-scroll feedback loops.</p><p><span class="micro-label">Interfaces</span><br>chapterMeta, useChapterInView, history.replaceState, scrollIntoView</p><p><span class="micro-label">Failure boundary</span><br>An invalid chapter parameter falls back to the first chapter without breaking render.</p></div></details><details class="record"><summary><span class="record-title">Desktop chapter rail</span><span class="status" data-status="pending"><span aria-hidden="true">○</span> Pending</span></summary><div class="record-body"><p><span class="micro-label">Responsibility</span><br>Show location, chapter titles, completion context, and direct navigation without covering course content.</p></div></details><details class="record"><summary><span class="record-title">Mobile chapter sheet</span><span class="status" data-status="pending"><span aria-hidden="true">○</span> Pending</span></summary><div class="record-body"><p><span class="micro-label">Responsibility</span><br>Offer the same chapter map in a touch-friendly progressive disclosure pattern.</p></div></details></div></div><div class="panel"><h3>Architecture decisions</h3><ul class="plain-list"><li>Use the existing chapter metadata instead of introducing a second navigation registry.</li><li>Use replaceState during passive scrolling and pushState only for explicit chapter jumps.</li><li>Keep motion decorative; navigation state must remain correct when motion is disabled.</li></ul></div></div></section><section id="plan" data-report-view="plan" class="report-view"><div class="section-heading"><p class="section-index">03</p><h2>Acceptance &amp; plan</h2></div><div class="split"><div><h3 class="subhead">Acceptance criteria</h3><div class="record-stack"><details class="record" open><summary><span class="record-title"><span class="record-id">AC-01</span>Opening a valid chapter deep link scrolls to that chapter and marks it active.</span><span class="status" data-status="pending"><span aria-hidden="true">○</span> Pending</span></summary><div class="record-body"><p>No additional detail recorded.</p></div></details><details class="record"><summary><span class="record-title"><span class="record-id">AC-02</span>Scrolling across chapter boundaries updates the URL without filling browser history with passive updates.</span><span class="status" data-status="pending"><span aria-hidden="true">○</span> Pending</span></summary><div class="record-body"><p>No additional detail recorded.</p></div></details><details class="record"><summary><span class="record-title"><span class="record-id">AC-03</span>Every navigation control is keyboard reachable, visibly focused, and labeled with chapter number and title.</span><span class="status" data-status="pending"><span aria-hidden="true">○</span> Pending</span></summary><div class="record-body"><p>No additional detail recorded.</p></div></details><details class="record"><summary><span class="record-title"><span class="record-id">AC-04</span>At 390px width, the course has no horizontal overflow and the chapter picker does not cover reading content when closed.</span><span class="status" data-status="pending"><span aria-hidden="true">○</span> Pending</span></summary><div class="record-body"><p>No additional detail recorded.</p></div></details></div></div><div><h3 class="subhead">Task plan</h3><div class="record-stack"><details class="record" open><summary><span class="record-title"><span class="record-id">T-01</span>Unify URL and viewport chapter state</span><span class="status" data-status="pending"><span aria-hidden="true">○</span> Pending</span></summary><div class="record-body"><p><span class="micro-label">Owner</span><br>implementation agent</p><p><span class="micro-label">Verification</span><br>Unit tests for initial URL, invalid URL, passive scroll, and explicit jump behavior.</p></div></details><details class="record"><summary><span class="record-title"><span class="record-id">T-02</span>Refine desktop and mobile navigation surfaces</span><span class="status" data-status="pending"><span aria-hidden="true">○</span> Pending</span></summary><div class="record-body"><p><span class="micro-label">Owner</span><br>frontend agent</p><p><span class="micro-label">Depends on</span><br>T-01</p><p><span class="micro-label">Verification</span><br>Keyboard walkthrough and Playwright checks at desktop and 390px viewports.</p></div></details><details class="record"><summary><span class="record-title"><span class="record-id">T-03</span>Run adversarial navigation verification</span><span class="status" data-status="pending"><span aria-hidden="true">○</span> Pending</span></summary><div class="record-body"><p><span class="micro-label">Owner</span><br>independent verifier</p><p><span class="micro-label">Depends on</span><br>T-01, T-02</p><p><span class="micro-label">Verification</span><br>Reload, back/forward, rapid chapter jumps, reduced motion, and invalid deep-link cases.</p></div></details></div></div></div></section><section id="decisions" data-report-view="decisions" class="report-view"><div class="section-heading"><p class="section-index">04</p><h2>Critique &amp; decisions</h2></div><p class="lede">Challenges stay visible beside their dispositions; agreement is not proof.</p><div class="split"><div><h3 class="subhead">Critical review</h3><div class="record-stack"><details class="record" open><summary><span class="record-title"><span class="record-id">Product critic</span>A large always-open mobile table of contents would interrupt the course more than it helps.</span><span class="status" data-status="accepted"><span aria-hidden="true">✓</span> Accepted</span></summary><div class="record-body"><p><span class="micro-label">Disposition</span><br>Use a compact current-chapter trigger and reveal the full list only on demand.</p></div></details><details class="record"><summary><span class="record-title"><span class="record-id">Architecture critic</span>Two independent active-chapter states would drift during smooth scrolling and browser navigation.</span><span class="status" data-status="accepted"><span aria-hidden="true">✓</span> Accepted</span></summary><div class="record-body"><p><span class="micro-label">Disposition</span><br>Centralize reconciliation in one controller consumed by both responsive surfaces.</p></div></details></div></div><div><h3 class="subhead">Decision record</h3><div class="record-stack"><details class="record" open><summary><span class="record-title"><span class="record-id">DEC-01</span>Preserve the course as one continuous document</span><span class="status" data-status="accepted"><span aria-hidden="true">✓</span> Accepted</span></summary><div class="record-body"><p><span class="micro-label">Rationale</span><br>The cinematic narrative depends on uninterrupted scrolling; navigation should orient readers rather than turn chapters into separate routes.</p></div></details></div></div></div></section><section id="progress" data-report-view="progress" class="report-view"><div class="section-heading"><p class="section-index">05</p><h2>Progress</h2></div><p class="lede">A compact operating view of what moved, what waits, and what blocks the next proof.</p><div class="progress-grid"><div class="metric"><strong>0</strong><span>Complete</span></div><div class="metric"><strong>0</strong><span>In motion</span></div><div class="metric"><strong>0</strong><span>Blocked</span></div><div class="metric"><strong>3</strong><span>Queued</span></div></div><h3 class="subhead" style="margin-top:2rem">Delivery runway</h3><div class="record-stack"><details class="record" open><summary><span class="record-title"><span class="record-id">T-01</span>Unify URL and viewport chapter state</span><span class="status" data-status="pending"><span aria-hidden="true">○</span> Pending</span></summary><div class="record-body"><p><span class="micro-label">Owner</span><br>implementation agent</p></div></details><details class="record"><summary><span class="record-title"><span class="record-id">T-02</span>Refine desktop and mobile navigation surfaces</span><span class="status" data-status="pending"><span aria-hidden="true">○</span> Pending</span></summary><div class="record-body"><p><span class="micro-label">Owner</span><br>frontend agent</p><p><span class="micro-label">Depends on</span><br>T-01</p></div></details><details class="record"><summary><span class="record-title"><span class="record-id">T-03</span>Run adversarial navigation verification</span><span class="status" data-status="pending"><span aria-hidden="true">○</span> Pending</span></summary><div class="record-body"><p><span class="micro-label">Owner</span><br>independent verifier</p><p><span class="micro-label">Depends on</span><br>T-01, T-02</p></div></details></div></section><section id="truth" data-report-view="truth" class="report-view"><div class="section-heading"><p class="section-index">06</p><h2>Verification &amp; truth</h2></div><p class="lede">Contradictions and stale proof lead this ledger; passing evidence follows.</p><h3 class="subhead">Unresolved gaps</h3><ol class="risk-list"><li>The proposed interaction still requires implementation and browser-level verification in GST Decoded.</li></ol><h3 class="subhead" style="margin-top:2rem">Truth ledger</h3><div class="record-stack"><details class="record" open><summary><span class="record-title">Proposed behavior</span><span class="status" data-status="unverified"><span aria-hidden="true">?</span> Unverified</span></summary><div class="record-body"><p><span class="micro-label">Observation</span><br>This report is the implementation contract; no GST Decoded source files were changed.</p></div></details><details class="record"><summary><span class="record-title">Repository inspection</span><span class="status" data-status="verified"><span aria-hidden="true">✓</span> Verified</span></summary><div class="record-body"><p><span class="micro-label">Observation</span><br>Inspected clean commit 671c35e: 18 chapter modules, chapterMeta, ChapterNav, useChapterInView, and scrollIntoView are present.</p></div></details></div></section><section id="evidence" data-report-view="evidence" class="report-view"><div class="section-heading"><p class="section-index">07</p><h2>Files &amp; evidence</h2></div><div class="split"><div><h3 class="subhead">Changed files</h3><div class="record-stack"><details class="record" open><summary><span class="record-title">src/components/layout/ChapterNav.tsx</span><span class="status" data-status="reviewed"><span aria-hidden="true">✓</span> Reviewed</span></summary><div class="record-body"><p><span class="micro-label">Change</span><br>proposed</p></div></details><details class="record"><summary><span class="record-title">src/hooks/useChapterInView.ts</span><span class="status" data-status="reviewed"><span aria-hidden="true">✓</span> Reviewed</span></summary><div class="record-body"><p><span class="micro-label">Change</span><br>proposed</p></div></details><details class="record"><summary><span class="record-title">src/config/theme.ts</span><span class="status" data-status="verified"><span aria-hidden="true">✓</span> Verified</span></summary><div class="record-body"><p><span class="micro-label">Change</span><br>reuse existing chapter metadata</p></div></details></div></div><div><h3 class="subhead">Evidence index</h3><div class="record-stack"><details class="record" open><summary><span class="record-title">Read-only repository analysis</span><span class="status" data-status="fresh"><span aria-hidden="true">✓</span> Fresh</span></summary><div class="record-body"><p><span class="micro-label">Evidence type</span><br>source-inspection</p><p><span class="micro-label">Detail</span><br>The demo was generated against the public GST Decoded repository without modifying its worktree.</p></div></details></div></div></div></section>
+      <aside class="feedback" aria-labelledby="feedback-title">
+        <p class="micro-label">Local review loop</p>
+        <h2 id="feedback-title">Leave the work sharper.</h2>
+        <p>Draft only — this feedback grants no approval. Copy or download a local JSON proposal, then review it through Forge.</p>
+        <label for="feedback-text">Feedback for this report</label>
+        <textarea id="feedback-text" placeholder="Name the claim, decision, or task you want changed."></textarea>
+        <div class="button-row">
+          <button type="button" id="copy-feedback" class="primary">Copy JSON</button>
+          <button type="button" id="download-feedback">Download JSON</button>
+          <button type="button" id="expand-all">Expand details</button>
+          <button type="button" id="collapse-all">Collapse details</button>
+          <a id="feedback-download-anchor" hidden download="forge-feedback.json"></a>
+        </div>
+        <p id="feedback-status" class="feedback-status" aria-live="polite"></p>
+      </aside>
+      <p class="footer-note">Local artifact · no remote dependencies · project text escaped</p>
+    </main>
+  </div>
+  <script>
+    (() => {
+      "use strict";
+      const feedbackText = document.getElementById("feedback-text");
+      const copyButton = document.getElementById("copy-feedback");
+      const downloadButton = document.getElementById("download-feedback");
+      const downloadAnchor = document.getElementById("feedback-download-anchor");
+      const feedbackStatus = document.getElementById("feedback-status");
+
+      const feedbackDocument = () => ({
+        schema_version: "forge-feedback-v1",
+        feedback_id: "feedback-draft",
+        work_item_id: "unbound-report",
+        expected_state_root: "0000000000000000000000000000000000000000000000000000000000000000",
+        target_ids: ["report-root"],
+        proposals: [{
+          field_path: "report.notes",
+          operation: "replace",
+          value_json: JSON.stringify(feedbackText.value)
+        }],
+        submitted_by: {
+          kind: "user",
+          identity: "local-reviewer",
+          channel: "report-download"
+        }
+      });
+
+      const serializedFeedback = () => JSON.stringify(feedbackDocument(), null, 2) + "\n";
+
+      copyButton.addEventListener("click", async () => {
+        const text = serializedFeedback();
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            const fallback = document.createElement("textarea");
+            fallback.value = text;
+            fallback.setAttribute("readonly", "");
+            fallback.style.position = "fixed";
+            fallback.style.opacity = "0";
+            document.body.appendChild(fallback);
+            fallback.select();
+            document.execCommand("copy");
+            fallback.remove();
+          }
+          feedbackStatus.textContent = "Feedback JSON copied.";
+        } catch (_error) {
+          feedbackStatus.textContent = "Copy was blocked; use Download JSON instead.";
+        }
+      });
+
+      downloadButton.addEventListener("click", () => {
+        const blob = new Blob([serializedFeedback()], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        downloadAnchor.href = url;
+        downloadAnchor.click();
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
+        feedbackStatus.textContent = "Feedback JSON downloaded locally.";
+      });
+
+      document.getElementById("expand-all").addEventListener("click", () => {
+        document.querySelectorAll("details.record").forEach((item) => { item.open = true; });
+      });
+
+      document.getElementById("collapse-all").addEventListener("click", () => {
+        document.querySelectorAll("details.record").forEach((item) => { item.open = false; });
+      });
+    })();
+  </script>
+</body>
+</html>

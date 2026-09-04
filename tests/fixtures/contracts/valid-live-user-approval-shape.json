@@ -1,0 +1,25 @@
+{
+  "schema_version": "approval-v1",
+  "approval_id": "approval-live-user",
+  "work_item_id": "work-001",
+  "expected_state_root": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "subject_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "authority": {
+    "authority_kind": "live_user",
+    "identity": "user-001",
+    "channel": "codex",
+    "receipt_id": null
+  },
+  "scope": {
+    "targets": ["repository-001"],
+    "action_class": "local_reversible_write",
+    "slice_id": "slice-001",
+    "oracle_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "external_action_policy_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "action_budget_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "expires_at": "2026-09-03T18:00:00Z",
+  "nonce": "nonce-live-user",
+  "clock_epoch": 1,
+  "single_use": true
+}

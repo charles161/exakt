@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:forge:schema:verifier-attestation-v1",
+  "title": "Forge verifier attestation v1",
+  "description": "Verifier identity, isolation facts, claim results, tier, and evidence bound to one bundle.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "attestation_id",
+    "bundle_id",
+    "bundle_digest",
+    "subject_bindings",
+    "verifier",
+    "claim_results",
+    "created_at",
+    "attestation_digest"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "const": "verifier-attestation-v1"},
+    "attestation_id": {"$ref": "#/$defs/non_empty_string"},
+    "bundle_id": {"$ref": "#/$defs/non_empty_string"},
+    "bundle_digest": {"$ref": "#/$defs/sha256"},
+    "subject_bindings": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/subject_binding"},
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "verifier": {"$ref": "#/$defs/verifier"},
+    "claim_results": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/claim_result"},
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "created_at": {"$ref": "#/$defs/non_empty_string"},
+    "attestation_digest": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "non_empty_string": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
+    "non_empty_string_list": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/non_empty_string"},
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "subject_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subject_id", "subject_digest"],
+      "properties": {
+        "subject_id": {"$ref": "#/$defs/non_empty_string"},
+        "subject_digest": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "claim_status": {
+      "type": "string",
+      "enum": ["verified", "partially_verified", "failed", "blocked", "unverified", "stale", "contradicted"]
+    },
+    "verification_tier": {
+      "type": "string",
+      "enum": ["none", "standard", "independent"]
+    },
+    "verifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "context_id", "process_id", "harness", "independent"],
+      "properties": {
+        "identity": {"$ref": "#/$defs/non_empty_string"},
+        "context_id": {"$ref": "#/$defs/non_empty_string"},
+        "process_id": {"$ref": "#/$defs/non_empty_string"},
+        "harness": {"$ref": "#/$defs/non_empty_string"},
+        "independent": {"type": "boolean"}
+      }
+    },
+    "claim_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim_id", "status", "verification_tier", "evidence_ids"],
+      "properties": {
+        "claim_id": {"$ref": "#/$defs/non_empty_string"},
+        "status": {"$ref": "#/$defs/claim_status"},
+        "verification_tier": {"$ref": "#/$defs/verification_tier"},
+        "evidence_ids": {"$ref": "#/$defs/non_empty_string_list"}
+      }
+    }
+  }
+}

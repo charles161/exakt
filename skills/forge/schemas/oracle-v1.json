@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:forge:schema:oracle-v1",
+  "title": "Forge verification oracle v1",
+  "description": "Approved intended claims, prohibited outcomes, examples, and required proof types.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "oracle_id", "work_item_id", "version", "approval_id", "rows"],
+  "properties": {
+    "schema_version": {"type": "string", "const": "oracle-v1"},
+    "oracle_id": {"$ref": "#/$defs/non_empty_string"},
+    "work_item_id": {"$ref": "#/$defs/non_empty_string"},
+    "version": {"type": "integer", "minimum": 1},
+    "approval_id": {"$ref": "#/$defs/non_empty_string"},
+    "rows": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/oracle_row"},
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "non_empty_string": {"type": "string", "minLength": 1},
+    "non_empty_string_list": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/non_empty_string"},
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "string_list": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/non_empty_string"},
+      "uniqueItems": true
+    },
+    "oracle_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "requirement_ids",
+        "claim_text",
+        "scope",
+        "criticality",
+        "prohibited_outcomes",
+        "acceptance_examples",
+        "required_proof_types"
+      ],
+      "properties": {
+        "claim_id": {"$ref": "#/$defs/non_empty_string"},
+        "requirement_ids": {"$ref": "#/$defs/non_empty_string_list"},
+        "claim_text": {"$ref": "#/$defs/non_empty_string"},
+        "scope": {"$ref": "#/$defs/claim_scope"},
+        "criticality": {"type": "string", "enum": ["required", "optional", "waivable"]},
+        "prohibited_outcomes": {"$ref": "#/$defs/string_list"},
+        "acceptance_examples": {"$ref": "#/$defs/non_empty_string_list"},
+        "required_proof_types": {"$ref": "#/$defs/non_empty_string_list"}
+      }
+    },
+    "claim_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subject_kind", "target_ids"],
+      "properties": {
+        "subject_kind": {
+          "type": "string",
+          "enum": ["source", "artifact", "deployment", "database", "provider_receipt", "external_observation", "composite"]
+        },
+        "target_ids": {"$ref": "#/$defs/non_empty_string_list"}
+      }
+    }
+  }
+}

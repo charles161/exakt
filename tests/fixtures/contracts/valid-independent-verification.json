@@ -1,0 +1,43 @@
+{
+  "schema_version": "verification-ledger-v1",
+  "work_item_id": "work-001",
+  "bundle_id": "bundle-001",
+  "bundle_digest": "3333333333333333333333333333333333333333333333333333333333333333",
+  "closure_status": "independently_verified_complete",
+  "verification_tier": "independent",
+  "claims": [
+    {
+      "claim_id": "claim-independent",
+      "requirement_ids": ["requirement-001"],
+      "intended": "Independence is represented orthogonally.",
+      "observed": "A separate verifier ran the proof.",
+      "supporting_evidence_ids": ["evidence-001"],
+      "contradicting_evidence_ids": [],
+      "proof_contract": {
+        "proof_contract_id": "proof-contract-independent",
+        "claim_kind": "contract_validation",
+        "subjects": [
+          {
+            "subject_id": "source-001",
+            "subject_digest": "4444444444444444444444444444444444444444444444444444444444444444"
+          }
+        ],
+        "preconditions": [],
+        "assertions": ["The claim passes."],
+        "required_verifier_adapters": ["unittest-v1"],
+        "coverage_obligations": ["The enum split is explicit."],
+        "applicability_window": {
+          "starts_at": "2026-09-03T17:00:00Z",
+          "expires_at": null
+        }
+      },
+      "status": "verified",
+      "verification_tier": "independent",
+      "freshness_fingerprints": ["manifest-001"],
+      "invalidation_dependencies": ["schemas"],
+      "gaps": [],
+      "counterexamples_attempted": [],
+      "next_action": null
+    }
+  ]
+}

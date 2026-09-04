@@ -1,0 +1,19 @@
+{
+  "schema_version": "task-graph-v1",
+  "work_item_id": "work-001",
+  "oracle_id": "oracle-001",
+  "tasks": [
+    {
+      "task_id": "task-blocked",
+      "description": "Wait for required authority.",
+      "dependencies": [],
+      "requirement_ids": ["requirement-001"],
+      "expected_files": ["schemas/approval-v1.json"],
+      "verification_steps": ["Obtain live approval."],
+      "approval_policy": "exact_action",
+      "status": "blocked",
+      "attempts": 1,
+      "evidence_ids": []
+    }
+  ]
+}
