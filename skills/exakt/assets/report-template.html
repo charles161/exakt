@@ -318,6 +318,72 @@
 
     .panel p:last-child { margin-bottom: 0; }
 
+    .contract-notice {
+      margin: 2rem 0;
+      padding: 1rem 1.15rem;
+      border: 1px solid var(--line-strong);
+      border-left: 5px solid var(--warning);
+      background: rgba(138, 87, 14, 0.07);
+    }
+
+    .contract-notice.legacy { border-left-color: var(--cool); background: rgba(66, 93, 115, 0.07); }
+    .contract-notice p { margin: 0.35rem 0 0; }
+    .contract-notice .authority-name { font-family: var(--serif); font-size: 1.35rem; }
+
+    .v2-contract-block {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(16rem, 0.65fr);
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .intent-card {
+      padding: clamp(1rem, 2.4vw, 1.6rem);
+      border: 1px solid var(--ink);
+      background: rgba(29, 32, 30, 0.035);
+    }
+
+    .intent-card p { margin: 0.55rem 0 0; }
+    .intent-card .intent-text { font-family: var(--serif); font-size: 1.35rem; line-height: 1.35; }
+    .intent-card .confidence { color: var(--accent-dark); font-family: var(--mono); font-size: 0.75rem; text-transform: uppercase; }
+    .spaced { margin-top: 2rem; }
+
+    .spec-meta dl {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 0.45rem 0.8rem;
+      margin: 0;
+      font-size: 0.82rem;
+    }
+
+    .spec-meta dt { color: var(--ink-soft); }
+    .spec-meta dd { min-width: 0; margin: 0; font-family: var(--mono); overflow-wrap: anywhere; }
+    .digest { word-break: break-all; }
+
+    .change-list {
+      display: grid;
+      gap: 0.65rem;
+      margin: 1.2rem 0 0;
+      padding: 0;
+      list-style: none;
+      font-size: 0.78rem;
+    }
+
+    .trace-meta { display: block; margin-top: 0.2rem; color: var(--ink-soft); }
+
+    .primitive-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .primitive-lane {
+      min-width: 0;
+      padding: 1rem;
+      border-top: 3px solid var(--ink);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
     .plain-list {
       display: grid;
       gap: 0.65rem;
@@ -392,6 +458,25 @@
 
     .record-body p { margin: 0.85rem 0 0; }
 
+    .milestone-stack { margin-bottom: 2rem; }
+    .milestone-scope { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1rem; }
+    .closeout { margin-top: 1rem; padding-top: 0.15rem; border-top: 1px solid var(--line); }
+    .no-gap { color: var(--verified); font-size: 0.85rem; }
+    .risk-list.compact { margin-top: 1rem; padding-top: 0.8rem; padding-bottom: 0.8rem; }
+
+    .commit-line {
+      display: grid;
+      grid-template-columns: auto auto minmax(5rem, auto) minmax(0, 1fr);
+      gap: 0.65rem;
+      align-items: center;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+      overflow-wrap: anywhere;
+    }
+
+    .commit-line code { font-family: var(--mono); font-size: 0.72rem; }
+
     .status {
       display: inline-flex;
       gap: 0.38rem;
@@ -416,14 +501,77 @@
     .status[data-status="accepted"],
     .status[data-status="reviewed"] { color: var(--verified); }
 
+    .status[data-status="known"],
+    .status[data-status="decided"],
+    .status[data-status="done"],
+    .status[data-status="committed"],
+    .status[data-status="independent"],
+    .status[data-status="external-journal"] { color: var(--verified); }
+
     .status[data-status="blocked"],
     .status[data-status="failed"],
     .status[data-status="contradicted"] { color: var(--danger); }
+
+    .status[data-status="conflicted"] { color: var(--danger); }
 
     .status[data-status="stale"],
     .status[data-status="partial"],
     .status[data-status="unverified"],
     .status[data-status="pending"] { color: var(--warning); }
+
+    .status[data-status="partially-verified"],
+    .status[data-status="assumed"],
+    .status[data-status="unknown"],
+    .status[data-status="not-authorized"],
+    .status[data-status="self-attested"] { color: var(--warning); }
+
+    .proof-lane,
+    .trace-lane,
+    .orphan-list {
+      display: grid;
+      gap: 0.5rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .proof-lane li {
+      display: grid;
+      grid-template-columns: minmax(8rem, 1fr) minmax(7rem, 0.8fr) auto auto;
+      gap: 0.75rem;
+      align-items: center;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .proof-stage { font-family: var(--mono); font-size: 0.76rem; font-weight: 700; text-transform: uppercase; }
+    .proof-lane code { font-family: var(--mono); font-size: 0.7rem; }
+
+    .trace-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(15rem, 0.75fr);
+      gap: 1rem;
+    }
+
+    .trace-lane {
+      padding: 1rem;
+      border: 1px solid var(--line);
+      background: rgba(29, 32, 30, 0.035);
+      font-family: var(--mono);
+      font-size: 0.73rem;
+      overflow-wrap: anywhere;
+    }
+
+    .trace-lane li + li { padding-top: 0.45rem; border-top: 1px dotted var(--line); }
+    .trace-lane span { color: var(--accent-dark); }
+
+    .orphan-list { margin-top: 0.75rem; }
+    .orphan-list li {
+      padding: 0.65rem 0.8rem;
+      border-left: 4px solid var(--warning);
+      background: rgba(138, 87, 14, 0.07);
+      font-size: 0.82rem;
+    }
 
     .progress-grid {
       display: grid;
@@ -536,6 +684,8 @@
       .studio { grid-template-columns: 12rem minmax(0, 1fr); gap: 2rem; }
       .split { grid-template-columns: 1fr; }
       .progress-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .v2-contract-block,
+      .trace-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 720px) {
@@ -557,6 +707,11 @@
       .lede { margin-left: 0; }
       details.record summary { grid-template-columns: minmax(0, 1fr); gap: 0.65rem; }
       .progress-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .primitive-grid { grid-template-columns: 1fr; }
+      .proof-lane li { grid-template-columns: minmax(0, 1fr) auto; }
+      .proof-lane li > :nth-child(2),
+      .proof-lane li > :nth-child(4) { justify-self: start; }
+      .commit-line { grid-template-columns: minmax(0, 1fr); align-items: start; }
       .footer-note { text-align: left; }
     }
 

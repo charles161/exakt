@@ -6,8 +6,10 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import os
 import re
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
@@ -40,6 +42,20 @@ STATUS_SYMBOLS = {
     "implementing": "→",
     "active": "→",
     "open": "◇",
+    "known": "●",
+    "assumed": "≈",
+    "decided": "✓",
+    "unknown": "?",
+    "conflicted": "↯",
+    "ready": "◇",
+    "done": "✓",
+    "committed": "✓",
+    "prepared": "→",
+    "not-authorized": "○",
+    "self-attested": "◇",
+    "separated": "↗",
+    "independent": "✓",
+    "external-journal": "✓",
 }
 
 TRUTH_PRIORITY = {
@@ -100,6 +116,15 @@ def _status_badge(value: Any) -> str:
     )
 
 
+def _label(value: Any, fallback: str = "Not recorded") -> str:
+    """Humanize a contract token without making it more authoritative."""
+    return _text(value, fallback).replace("_", " ").capitalize()
+
+
+def _is_v2(state: Mapping[str, Any]) -> bool:
+    return state.get("schema_version") == "exakt-report-v2"
+
+
 def _plain_list(values: Any, empty: str) -> str:
     items = _sequence(values)
     rendered = [f"<li>{_escape(item)}</li>" for item in items if isinstance(item, (str, int, float, bool))]
@@ -126,6 +151,8 @@ def _details_cards(
     title_keys: tuple[str, ...],
     id_keys: tuple[str, ...] = ("id",),
     body_fields: tuple[tuple[str, str], ...] = (),
+    data_fields: tuple[tuple[str, str], ...] = (),
+    show_status: bool = True,
     empty: str,
 ) -> str:
     cards: list[str] = []
@@ -149,6 +176,11 @@ def _details_cards(
                 else ""
             )
             status = record.get("status", "unverified")
+            data_attributes = "".join(
+                f' data-{attribute}="{html.escape(_text(record.get(field), ""), quote=True)}"'
+                for field, attribute in data_fields
+                if field in record
+            )
             paragraphs = []
             for field, label in body_fields:
                 if field in record:
@@ -160,23 +192,141 @@ def _details_cards(
             title = _escape(item)
             identifier = ""
             status = "unverified"
+            data_attributes = ""
             paragraphs = []
         else:
             continue
 
         status_key = _status_key(status)
-        opened = " open" if index == 0 or status_key in {"blocked", "contradicted", "stale", "failed"} else ""
+        opened = " open" if index == 0 or (
+            show_status and status_key in {"blocked", "contradicted", "stale", "failed"}
+        ) else ""
         body = "".join(paragraphs) or "<p>No additional detail recorded.</p>"
+        status_html = _status_badge(status) if show_status else ""
         cards.append(
-            f'<details class="record"{opened}>'
+            f'<details class="record"{data_attributes}{opened}>'
             f"<summary><span class=\"record-title\">{identifier}{title}</span>"
-            f"{_status_badge(status)}</summary>"
+            f"{status_html}</summary>"
             f'<div class="record-body">{body}</div>'
             "</details>"
         )
     if not cards:
         return f'<p class="empty">{html.escape(empty)}</p>'
     return '<div class="record-stack">' + "".join(cards) + "</div>"
+
+
+def _contract_notice(state: Mapping[str, Any]) -> str:
+    if not _is_v2(state):
+        return (
+            '<aside class="contract-notice legacy" data-contract="legacy-v1">'
+            '<p class="micro-label">Legacy v1 contract</p>'
+            '<p>V2 traceability and milestone guarantees are unavailable.</p>'
+            "</aside>"
+        )
+    authority = _text(state.get("authority_mode"), "local-self-attested")
+    if authority == "external-journal":
+        label = "External journal"
+        explanation = (
+            "Authority is delegated to an external journal; individual proof rows "
+            "still declare their own provenance and freshness."
+        )
+    else:
+        label = "Local self-attested"
+        explanation = "This report does not claim independent verification."
+    return (
+        f'<aside class="contract-notice" data-authority-mode="{html.escape(authority, quote=True)}">'
+        '<p class="micro-label">Proof authority</p>'
+        f'<p class="authority-name">{html.escape(label)}</p>'
+        f"<p>{html.escape(explanation)}</p>"
+        "</aside>"
+    )
+
+
+def _clarity_panel(state: Mapping[str, Any]) -> str:
+    clarity = _mapping(state.get("clarity"))
+    intent = _mapping(clarity.get("intent"))
+    ledger = _details_cards(
+        clarity.get("ledger"),
+        title_keys=("text", "id"),
+        body_fields=(
+            ("source", "Source"),
+            ("affects", "Affects"),
+            ("blocking", "Blocking"),
+        ),
+        empty="No material uncertainty recorded.",
+    )
+    open_item = intent.get("open_item_id")
+    open_html = (
+        f'<p><span class="micro-label">Open item</span><br>{_escape(open_item)}</p>'
+        if open_item
+        else ""
+    )
+    return (
+        '<div class="intent-card">'
+        '<p class="micro-label">Current intent hypothesis</p>'
+        f'<p class="intent-text">{_escape(intent.get("text"), "No intent hypothesis recorded.")}</p>'
+        f'<p class="confidence">Confidence · {_escape(_label(intent.get("confidence"), "Unknown"))}</p>'
+        f'<p>{_escape(intent.get("reason"), "No confidence rationale recorded.")}</p>'
+        f"{open_html}</div>"
+        '<h3 class="subhead spaced">Clarity ledger</h3>'
+        f"{ledger}"
+    )
+
+
+def _primitive_panel(state: Mapping[str, Any]) -> str:
+    primitives = _mapping(state.get("primitives"))
+    groups = (
+        ("behaviors", "Behaviors", (("text", "Behavior"),)),
+        ("invariants", "Invariants", (("text", "Invariant"),)),
+        ("oracles", "Oracles", (("method", "Method"),)),
+        ("counterexamples", "Counterexamples", (("targets", "Targets"),)),
+    )
+    rendered: list[str] = []
+    for key, title, fields in groups:
+        cards = _details_cards(
+            primitives.get(key),
+            title_keys=("text", "id"),
+            body_fields=fields,
+            empty=f"No {title.casefold()} recorded.",
+        )
+        rendered.append(
+            f'<div class="primitive-lane"><h3 class="subhead">{html.escape(title)}</h3>{cards}</div>'
+        )
+    return '<div class="primitive-grid">' + "".join(rendered) + "</div>"
+
+
+def _spec_metadata(state: Mapping[str, Any]) -> str:
+    spec = _mapping(state.get("spec"))
+    changes = _sequence(spec.get("changes"))
+    change_items = []
+    for item in changes:
+        record = _mapping(item)
+        if not record:
+            continue
+        change_items.append(
+            '<li><strong>Revision '
+            + _escape(record.get("revision"))
+            + "</strong> · "
+            + _escape(record.get("summary"))
+            + '<span class="trace-meta">Changed: '
+            + _display_value(record.get("changed_ids"))
+            + " · "
+            + _escape(record.get("reason"))
+            + "</span></li>"
+        )
+    history = (
+        '<ol class="change-list">' + "".join(change_items) + "</ol>"
+        if change_items
+        else '<p class="empty">No contract revisions recorded.</p>'
+    )
+    return (
+        '<div class="panel spec-meta"><h3>Living specification</h3><dl>'
+        f'<dt>Path</dt><dd>{_escape(spec.get("path"))}</dd>'
+        f'<dt>Spec revision</dt><dd>{_escape(spec.get("revision"))}</dd>'
+        f'<dt>Digest</dt><dd class="digest">{_escape(spec.get("digest"), "Not generated")}</dd>'
+        f'<dt>Updated</dt><dd>{_escape(spec.get("updated_at"))}</dd>'
+        f"</dl>{history}</div>"
+    )
 
 
 def _heading(index: int, title: str) -> str:
@@ -196,7 +346,7 @@ def _spec_section(state: Mapping[str, Any]) -> str:
         body_fields=(("rationale", "Rationale"), ("proof", "Proof")),
         empty="No requirements have been recorded.",
     )
-    return (
+    base = (
         '<section id="spec" data-report-view="spec" class="report-view">'
         + _heading(1, "Brief & spec")
         + f'<p class="lede">{_escape(brief.get("outcome"), "No outcome has been recorded.")}</p>'
@@ -209,6 +359,18 @@ def _spec_section(state: Mapping[str, Any]) -> str:
         + "</div></div>"
         + '<h3 class="subhead" style="margin-top:2rem">Requirements ledger</h3>'
         + requirements
+    )
+    if not _is_v2(state):
+        return base + "</section>"
+    return (
+        base
+        + '<div class="v2-contract-block"><div>'
+        + _clarity_panel(state)
+        + "</div>"
+        + _spec_metadata(state)
+        + "</div>"
+        + '<h3 class="subhead spaced">Behavioral contract</h3>'
+        + _primitive_panel(state)
         + "</section>"
     )
 
@@ -225,6 +387,7 @@ def _architecture_section(state: Mapping[str, Any]) -> str:
             ("interfaces", "Interfaces"),
             ("failure_boundary", "Failure boundary"),
         ),
+        show_status=not _is_v2(state),
         empty="No components recorded.",
     )
     return (
@@ -239,11 +402,78 @@ def _architecture_section(state: Mapping[str, Any]) -> str:
     )
 
 
+def _milestone_cards(value: Any, *, closeout_detail: bool) -> str:
+    cards: list[str] = []
+    for index, item in enumerate(_sequence(value)):
+        milestone = _mapping(item)
+        if not milestone:
+            continue
+        identifier = _text(milestone.get("id"), f"M{index + 1}")
+        title = _escape(milestone.get("title"), "Untitled milestone")
+        status = milestone.get("status", "unverified")
+        opened = " open" if index == 0 or _status_key(status) in {
+            "blocked",
+            "failed",
+            "stale",
+            "contradicted",
+        } else ""
+        scope = (
+            '<div class="milestone-scope">'
+            f'<p><span class="micro-label">Tasks</span><br>{_display_value(milestone.get("task_ids"))}</p>'
+            f'<p><span class="micro-label">Acceptance criteria</span><br>{_display_value(milestone.get("acceptance_criterion_ids"))}</p>'
+            "</div>"
+        )
+        closeout = _mapping(milestone.get("closeout"))
+        closeout_html = ""
+        if closeout_detail:
+            if not closeout:
+                closeout_html = '<p class="empty">No milestone closeout recorded.</p>'
+            else:
+                commit = _mapping(closeout.get("commit"))
+                gaps = _gap_values(closeout.get("gaps"))
+                gap_html = (
+                    '<ul class="risk-list compact">'
+                    + "".join(f"<li>{html.escape(gap)}</li>" for gap in gaps)
+                    + "</ul>"
+                    if gaps
+                    else '<p class="no-gap"><span aria-hidden="true">✓</span> No closeout gaps recorded.</p>'
+                )
+                commit_state = commit.get("state", "not-authorized")
+                commit_hash = commit.get("hash")
+                closeout_html = (
+                    '<div class="closeout">'
+                    f'<p><span class="micro-label">Completed</span><br>{_escape(closeout.get("completed"))}</p>'
+                    f'<p><span class="micro-label">Covered</span><br>{_display_value(closeout.get("covered_ids"))}</p>'
+                    f'<p><span class="micro-label">Changed</span><br>{_display_value(closeout.get("changed_paths"))}</p>'
+                    f'<p><span class="micro-label">Proved</span><br>{_display_value(closeout.get("evidence_ids"))}</p>'
+                    f"{gap_html}"
+                    '<div class="commit-line"><span class="micro-label">Commit</span>'
+                    f'{_status_badge(commit_state)}'
+                    f'<code>{_escape(commit_hash, "No commit hash")}</code>'
+                    f'<span>{_escape(commit.get("message"), "No commit message recorded")}</span>'
+                    "</div></div>"
+                )
+        cards.append(
+            f'<details class="record milestone" data-milestone-id="{html.escape(identifier, quote=True)}"{opened}>'
+            '<summary><span class="record-title">'
+            f'<span class="record-id">Milestone {html.escape(identifier)}</span>{title}</span>'
+            f"{_status_badge(status)}</summary>"
+            f'<div class="record-body">{scope}{closeout_html}</div></details>'
+        )
+    if not cards:
+        return '<p class="empty">No milestones recorded.</p>'
+    return '<div class="record-stack milestone-stack">' + "".join(cards) + "</div>"
+
+
 def _plan_section(state: Mapping[str, Any]) -> str:
     criteria = _details_cards(
         state.get("acceptance_criteria"),
         title_keys=("text", "title", "name"),
-        body_fields=(("evidence", "Evidence"), ("requirement", "Requirement")),
+        body_fields=(
+            ("evidence", "Evidence"),
+            ("requirement", "Requirement"),
+            ("evidence_ids", "Evidence IDs"),
+        ),
         empty="No acceptance criteria recorded.",
     )
     tasks = _details_cards(
@@ -252,14 +482,27 @@ def _plan_section(state: Mapping[str, Any]) -> str:
         body_fields=(
             ("owner", "Owner"),
             ("depends_on", "Depends on"),
+            ("work_type", "Work type"),
+            ("requirement_ids", "Requirements"),
+            ("acceptance_criterion_ids", "Acceptance criteria"),
             ("verification", "Verification"),
+            ("evidence_ids", "Evidence IDs"),
+            ("milestone_id", "Milestone"),
             ("attempts", "Attempts"),
         ),
         empty="No implementation tasks recorded.",
     )
+    milestone_scope = ""
+    if _is_v2(state):
+        milestone_scope = (
+            '<h3 class="subhead">Milestones</h3>'
+            + _milestone_cards(state.get("milestones"), closeout_detail=False)
+            + '<h3 class="subhead spaced">Acceptance and implementation</h3>'
+        )
     return (
         '<section id="plan" data-report-view="plan" class="report-view">'
         + _heading(3, "Acceptance & plan")
+        + milestone_scope
         + '<div class="split"><div><h3 class="subhead">Acceptance criteria</h3>'
         + criteria
         + '</div><div><h3 class="subhead">Task plan</h3>'
@@ -331,6 +574,12 @@ def _progress_section(state: Mapping[str, Any]) -> str:
         body_fields=(("owner", "Owner"), ("depends_on", "Depends on")),
         empty="No task progress recorded.",
     )
+    milestone_closeout = ""
+    if _is_v2(state):
+        milestone_closeout = (
+            '<h3 class="subhead spaced">Milestone closeouts</h3>'
+            + _milestone_cards(state.get("milestones"), closeout_detail=True)
+        )
     return (
         '<section id="progress" data-report-view="progress" class="report-view">'
         + _heading(5, "Progress")
@@ -338,6 +587,7 @@ def _progress_section(state: Mapping[str, Any]) -> str:
         + f'<div class="progress-grid">{metrics}</div>'
         + '<h3 class="subhead" style="margin-top:2rem">Delivery runway</h3>'
         + runway
+        + milestone_closeout
         + "</section>"
     )
 
@@ -366,6 +616,124 @@ def _sorted_truth(value: Any) -> list[Any]:
     return [item for _index, item in indexed]
 
 
+def _proof_stage_label(record: Mapping[str, Any]) -> str:
+    stage = _text(record.get("stage"), "proof")
+    result = _text(record.get("result"), "unverified")
+    if stage == "red" and result == "failed-as-expected":
+        return "RED observed"
+    if stage in {"red", "green"}:
+        return f"{stage.upper()} · {_label(result)}"
+    return f"{_label(stage)} · {_label(result)}"
+
+
+def _proof_stages(state: Mapping[str, Any]) -> str:
+    rows = []
+    for item in _sequence(state.get("evidence")):
+        record = _mapping(item)
+        if not record or "stage" not in record:
+            continue
+        provenance = _text(record.get("provenance"), "unrecorded")
+        rows.append(
+            f'<li data-proof-provenance="{html.escape(provenance, quote=True)}">'
+            f'<span class="proof-stage">{html.escape(_proof_stage_label(record))}</span>'
+            f'<span>{html.escape(_label(provenance))}</span>'
+            f'{_status_badge(record.get("status", "unverified"))}'
+            f'<code>{_escape(record.get("id"))}</code>'
+            "</li>"
+        )
+    if not rows:
+        return '<p class="empty">No TDD or falsification stages recorded.</p>'
+    return '<ol class="proof-lane">' + "".join(rows) + "</ol>"
+
+
+def _trace_orphans(state: Mapping[str, Any]) -> list[str]:
+    traceability = _mapping(state.get("traceability"))
+    edges = [record for record in map(_mapping, _sequence(traceability.get("edges"))) if record]
+    required_outgoing: list[tuple[str, str]] = []
+    required_incoming: list[tuple[str, str]] = []
+
+    def add(records: Any, direction: str, kinds: tuple[str, ...]) -> None:
+        target = required_outgoing if direction == "out" else required_incoming
+        for item in _sequence(records):
+            identifier = _mapping(item).get("id")
+            if isinstance(identifier, str):
+                target.extend((identifier, kind) for kind in kinds)
+
+    add(state.get("requirements"), "out", ("defines",))
+    primitives = _mapping(state.get("primitives"))
+    add(primitives.get("behaviors"), "in", ("defines",))
+    add(primitives.get("behaviors"), "out", ("accepted_by", "protects"))
+    add(primitives.get("invariants"), "in", ("protects",))
+    add(primitives.get("invariants"), "out", ("observed_by",))
+    add(primitives.get("oracles"), "in", ("observed_by",))
+    add(primitives.get("oracles"), "out", ("challenged_by",))
+    add(primitives.get("counterexamples"), "in", ("challenged_by",))
+    add(state.get("acceptance_criteria"), "in", ("accepted_by",))
+    add(state.get("acceptance_criteria"), "out", ("implemented_by",))
+    add(state.get("tasks"), "in", ("implemented_by",))
+    add(state.get("tasks"), "out", ("proved_by", "delivered_in"))
+    add(state.get("evidence"), "in", ("proved_by",))
+    add(state.get("milestones"), "in", ("delivered_in",))
+
+    gaps = []
+    for identifier, kind in required_outgoing:
+        if not any(edge.get("from") == identifier and edge.get("kind") == kind for edge in edges):
+            gaps.append(f"Orphan trace · {identifier} has no {kind} edge")
+    for identifier, kind in required_incoming:
+        if not any(edge.get("to") == identifier and edge.get("kind") == kind for edge in edges):
+            gaps.append(f"Orphan trace · {identifier} has no incoming {kind} edge")
+    return gaps
+
+
+def _trace_panel(state: Mapping[str, Any]) -> str:
+    traceability = _mapping(state.get("traceability"))
+    edge_rows = []
+    for item in _sequence(traceability.get("edges")):
+        edge = _mapping(item)
+        if not edge:
+            continue
+        source = _escape(edge.get("from"))
+        target = _escape(edge.get("to"))
+        kind = _text(edge.get("kind"), "unknown")
+        edge_rows.append(
+            f'<li data-trace-kind="{html.escape(kind, quote=True)}">{source} '
+            f'<span aria-hidden="true">→</span> {html.escape(kind)} '
+            f'<span aria-hidden="true">→</span> {target}</li>'
+        )
+    edges_html = (
+        '<ol class="trace-lane">' + "".join(edge_rows) + "</ol>"
+        if edge_rows
+        else '<p class="empty">No trace edges recorded.</p>'
+    )
+    orphan_rows = _trace_orphans(state)
+    orphan_html = (
+        '<ul class="orphan-list">'
+        + "".join(f"<li>{html.escape(item)}</li>" for item in orphan_rows)
+        + "</ul>"
+        if orphan_rows
+        else '<p class="no-gap"><span aria-hidden="true">✓</span> No orphan trace detected.</p>'
+    )
+    invalidations = _details_cards(
+        traceability.get("invalidations"),
+        title_keys=("reason", "id"),
+        body_fields=(
+            ("changed_id", "Changed ID"),
+            ("affected_ids", "Affected IDs"),
+            ("recorded_at", "Recorded"),
+            ("resolved_at", "Resolved"),
+        ),
+        empty="No contract invalidations recorded.",
+    )
+    return (
+        '<div class="trace-grid"><div><h3 class="subhead">Contract trace</h3>'
+        + edges_html
+        + orphan_html
+        + '</div><div><h3 class="subhead">Invalidations</h3>'
+        + invalidations
+        + "</div></div>"
+    )
+
+
 def _truth_section(state: Mapping[str, Any]) -> str:
     gaps = _gap_values(state.get("gaps"))
     gap_html = (
@@ -378,12 +746,22 @@ def _truth_section(state: Mapping[str, Any]) -> str:
         title_keys=("name", "claim", "title", "text"),
         body_fields=(
             ("evidence", "Observation"),
+            ("evidence_ids", "Evidence IDs"),
             ("proof_type", "Proof type"),
             ("freshness", "Freshness"),
             ("counterexample", "Counterexample"),
         ),
         empty="No verification observations recorded.",
     )
+    authority_truth = _contract_notice(state)
+    v2_truth = ""
+    if _is_v2(state):
+        v2_truth = (
+            '<h3 class="subhead spaced">Proof stages and provenance</h3>'
+            + _proof_stages(state)
+            + '<h3 class="subhead spaced">Traceability</h3>'
+            + _trace_panel(state)
+        )
     return (
         '<section id="truth" data-report-view="truth" class="report-view">'
         + _heading(6, "Verification & truth")
@@ -392,6 +770,8 @@ def _truth_section(state: Mapping[str, Any]) -> str:
         + gap_html
         + '<h3 class="subhead" style="margin-top:2rem">Truth ledger</h3>'
         + verification
+        + authority_truth
+        + v2_truth
         + "</section>"
     )
 
@@ -402,6 +782,7 @@ def _evidence_section(state: Mapping[str, Any]) -> str:
         title_keys=("path", "name", "title"),
         id_keys=("id",),
         body_fields=(("change", "Change"), ("digest", "Digest"), ("note", "Note")),
+        show_status=not _is_v2(state),
         empty="No changed files recorded.",
     )
     evidence = _details_cards(
@@ -409,10 +790,16 @@ def _evidence_section(state: Mapping[str, Any]) -> str:
         title_keys=("name", "title", "command", "id"),
         body_fields=(
             ("type", "Evidence type"),
+            ("stage", "Stage"),
+            ("provenance", "Provenance"),
             ("detail", "Detail"),
             ("result", "Result"),
+            ("command", "Command"),
+            ("subject_digest", "Subject digest"),
+            ("contract_digest", "Contract digest"),
             ("digest", "Digest"),
         ),
+        data_fields=(("provenance", "proof-provenance"),),
         empty="No evidence artifacts recorded.",
     )
     return (
@@ -576,11 +963,37 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _write_atomic(output: Path, rendered: str) -> None:
+    """Replace an HTML projection only after its complete bytes reach disk."""
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            newline="\n",
+            dir=output.parent,
+            prefix=f".{output.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            temporary = Path(handle.name)
+            handle.write(rendered)
+            handle.flush()
+            os.fsync(handle.fileno())
+        mode = output.stat().st_mode & 0o777 if output.exists() else 0o644
+        temporary.chmod(mode)
+        os.replace(temporary, output)
+        temporary = None
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+
+
 def main(argv: Iterable[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
         rendered = render_report(_load_state(args.input))
-        args.output.write_text(rendered, encoding="utf-8", newline="\n")
+        _write_atomic(args.output, rendered)
     except (OSError, RenderError) as error:
         print(f"render_report.py: error: {error}", file=sys.stderr)
         return 2

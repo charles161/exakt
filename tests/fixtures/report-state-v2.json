@@ -1,0 +1,317 @@
+{
+  "schema_version": "exakt-report-v2",
+  "authority_mode": "local-self-attested",
+  "title": "Shareable chapter navigation",
+  "mode": "task",
+  "summary": "Navigation follows a traced contract and current proof.",
+  "status": "unverified",
+  "phase": "verify",
+  "updated_at": "2026-09-04T10:30:00Z",
+  "brief": {
+    "outcome": "A copied chapter URL restores the same chapter.",
+    "users": [
+      "Readers sharing a lesson"
+    ],
+    "constraints": [
+      "Back navigation remains reversible"
+    ]
+  },
+  "clarity": {
+    "intent": {
+      "text": "Make chapter navigation URL-shareable.",
+      "confidence": "high",
+      "reason": "The existing router and history boundary were inspected.",
+      "open_item_id": "CL2"
+    },
+    "ledger": [
+      {
+        "id": "CL1",
+        "text": "Chapter slugs are stable.",
+        "status": "known",
+        "source": "src/routes.ts",
+        "affects": [
+          "R1"
+        ],
+        "blocking": false
+      },
+      {
+        "id": "CL2",
+        "text": "Legacy hash URLs need a redirect decision.",
+        "status": "conflicted",
+        "source": "repository + request",
+        "affects": [
+          "R1"
+        ],
+        "blocking": true
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "id": "R1",
+      "text": "A shared URL restores its chapter.",
+      "status": "verified"
+    },
+    {
+      "id": "R2",
+      "text": "Legacy redirect behavior is explicit.",
+      "status": "pending"
+    }
+  ],
+  "architecture": {
+    "overview": "The URL is canonical; UI state projects from it.",
+    "components": [
+      {
+        "id": "CMP1",
+        "name": "Chapter route adapter",
+        "responsibility": "Translate URL state into chapter selection.",
+        "interfaces": [
+          "History API",
+          "chapter registry"
+        ],
+        "failure_boundary": "Unknown slugs render a bounded not-found state."
+      }
+    ],
+    "decisions": [
+      "Do not mirror canonical chapter state in component state."
+    ]
+  },
+  "primitives": {
+    "behaviors": [
+      {
+        "id": "B1",
+        "text": "Opening a copied URL selects its chapter.",
+        "status": "verified"
+      }
+    ],
+    "invariants": [
+      {
+        "id": "INV1",
+        "text": "Browser Back reverses chapter changes.",
+        "status": "verified"
+      }
+    ],
+    "oracles": [
+      {
+        "id": "O1",
+        "text": "Drive a real browser history sequence.",
+        "method": "Playwright browser observation",
+        "status": "verified"
+      }
+    ],
+    "counterexamples": [
+      {
+        "id": "C1",
+        "text": "Back leaves the reader on the new chapter.",
+        "targets": [
+          "B1"
+        ],
+        "status": "verified"
+      }
+    ]
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Back restores the previous chapter after two selections.",
+      "status": "verified",
+      "evidence_ids": [
+        "E1"
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Bind chapter selection to the URL",
+      "status": "verified",
+      "depends_on": [],
+      "work_type": "executable",
+      "requirement_ids": [
+        "R1"
+      ],
+      "acceptance_criterion_ids": [
+        "AC1"
+      ],
+      "verification": "Exercise direct-load and browser Back in Chromium.",
+      "evidence_ids": [
+        "E1"
+      ],
+      "milestone_id": "M1"
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "Shareable navigation",
+      "status": "verified",
+      "task_ids": [
+        "T1"
+      ],
+      "acceptance_criterion_ids": [
+        "AC1"
+      ],
+      "closeout": {
+        "completed": "Direct links and Back navigation were exercised.",
+        "covered_ids": [
+          "R1",
+          "B1",
+          "INV1",
+          "AC1"
+        ],
+        "changed_paths": [
+          "src/chapter-navigation.ts"
+        ],
+        "evidence_ids": [
+          "E1"
+        ],
+        "gaps": [],
+        "commit": {
+          "state": "committed",
+          "hash": "1234abc",
+          "message": "feat: make chapter URLs shareable"
+        },
+        "status": "verified"
+      }
+    }
+  ],
+  "traceability": {
+    "edges": [
+      {
+        "from": "R1",
+        "to": "B1",
+        "kind": "defines"
+      },
+      {
+        "from": "B1",
+        "to": "AC1",
+        "kind": "accepted_by"
+      },
+      {
+        "from": "B1",
+        "to": "INV1",
+        "kind": "protects"
+      },
+      {
+        "from": "INV1",
+        "to": "O1",
+        "kind": "observed_by"
+      },
+      {
+        "from": "O1",
+        "to": "C1",
+        "kind": "challenged_by"
+      },
+      {
+        "from": "AC1",
+        "to": "T1",
+        "kind": "implemented_by"
+      },
+      {
+        "from": "T1",
+        "to": "E1",
+        "kind": "proved_by"
+      },
+      {
+        "from": "T1",
+        "to": "M1",
+        "kind": "delivered_in"
+      }
+    ],
+    "invalidations": [
+      {
+        "id": "IX1",
+        "changed_id": "R1",
+        "affected_ids": [
+          "AC1",
+          "T1"
+        ],
+        "reason": "A legacy redirect decision changed the contract.",
+        "recorded_at": "2026-09-04T10:00:00Z",
+        "status": "open",
+        "resolved_at": null
+      }
+    ]
+  },
+  "critiques": [],
+  "decisions": [
+    {
+      "id": "D1",
+      "title": "Keep URL state canonical",
+      "status": "decided",
+      "rationale": "One state owner prevents drift.",
+      "impact": "Links, reload, and Back share one behavior.",
+      "owner": "product engineer"
+    }
+  ],
+  "verification": [
+    {
+      "id": "V1",
+      "name": "Browser navigation proof",
+      "status": "verified",
+      "evidence_ids": [
+        "E1"
+      ],
+      "proof_type": "behavior",
+      "freshness": "fresh",
+      "counterexample": "C1"
+    }
+  ],
+  "files": [
+    {
+      "id": "F1",
+      "path": "src/chapter-navigation.ts",
+      "change": "modified",
+      "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "note": "URL-backed selection"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E0",
+      "name": "Missing history binding",
+      "type": "command",
+      "stage": "red",
+      "provenance": "self-attested",
+      "subject_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "contract_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "status": "verified",
+      "result": "failed-as-expected",
+      "command": "python -m pytest tests/test_navigation.py",
+      "detail": "The regression failed before the implementation changed."
+    },
+    {
+      "id": "E1",
+      "name": "Browser history regression",
+      "type": "command",
+      "stage": "falsification",
+      "provenance": "separated",
+      "subject_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "contract_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "status": "verified",
+      "result": "passed",
+      "command": "python -m pytest tests/test_navigation.py",
+      "detail": "Observed direct-load, two selections, and Back."
+    }
+  ],
+  "gaps": [
+    "Legacy redirect behavior remains unresolved."
+  ],
+  "spec": {
+    "path": ".exakt/spec.md",
+    "revision": 3,
+    "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "updated_at": "2026-09-04T10:20:00Z",
+    "changes": [
+      {
+        "revision": 3,
+        "summary": "Added legacy redirect boundary.",
+        "changed_ids": [
+          "R1"
+        ],
+        "reason": "Repository evidence contradicted the initial assumption.",
+        "updated_at": "2026-09-04T10:20:00Z"
+      }
+    ]
+  }
+}
