@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:exakt:schema:specialist-manifest-v1",
+  "title": "Exakt specialist adapter manifest v1",
+  "description": "Declared specialist capability, contract boundaries, leases, tools, provenance, and trust mode.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "manifest_id",
+    "capability_id",
+    "entry_point",
+    "input_schema_id",
+    "output_schema_id",
+    "side_effect_class",
+    "read_sets",
+    "write_sets",
+    "resource_sets",
+    "nested_invocation_policy",
+    "verifier_claim_types",
+    "required_tools",
+    "source",
+    "license",
+    "trust"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "const": "specialist-manifest-v1"},
+    "manifest_id": {"$ref": "#/$defs/non_empty_string"},
+    "capability_id": {"$ref": "#/$defs/non_empty_string"},
+    "entry_point": {"$ref": "#/$defs/non_empty_string"},
+    "input_schema_id": {"$ref": "#/$defs/non_empty_string"},
+    "output_schema_id": {"$ref": "#/$defs/non_empty_string"},
+    "side_effect_class": {"$ref": "#/$defs/side_effect_class"},
+    "read_sets": {"$ref": "#/$defs/string_list"},
+    "write_sets": {"$ref": "#/$defs/string_list"},
+    "resource_sets": {"$ref": "#/$defs/string_list"},
+    "nested_invocation_policy": {"type": "string", "enum": ["forbidden"]},
+    "verifier_claim_types": {"$ref": "#/$defs/string_list"},
+    "required_tools": {"$ref": "#/$defs/string_list"},
+    "source": {"$ref": "#/$defs/source"},
+    "license": {"$ref": "#/$defs/non_empty_string"},
+    "trust": {"$ref": "#/$defs/trust"}
+  },
+  "$defs": {
+    "non_empty_string": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
+    "string_list": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/non_empty_string"},
+      "uniqueItems": true
+    },
+    "side_effect_class": {
+      "type": "string",
+      "enum": [
+        "local_read",
+        "network_read",
+        "local_reversible_write",
+        "external_reversible_write",
+        "external_irreversible_write",
+        "publication",
+        "production_deploy"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["uri", "version", "digest"],
+      "properties": {
+        "uri": {"$ref": "#/$defs/non_empty_string"},
+        "version": {"$ref": "#/$defs/non_empty_string"},
+        "digest": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "trust": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "approval_id"],
+      "properties": {
+        "mode": {"type": "string", "enum": ["advisory", "allowlisted", "signed", "user_approved"]},
+        "approval_id": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

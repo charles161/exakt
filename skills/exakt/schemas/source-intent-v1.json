@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:exakt:schema:source-intent-v1",
+  "title": "Exakt source intent inventory v1",
+  "description": "Traceable normative source statements and their oracle coverage or proposed disposition.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "source_id", "work_item_id", "items"],
+  "properties": {
+    "schema_version": {"type": "string", "const": "source-intent-v1"},
+    "source_id": {"$ref": "#/$defs/non_empty_string"},
+    "work_item_id": {"$ref": "#/$defs/non_empty_string"},
+    "items": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/intent_item"},
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "non_empty_string": {"type": "string", "minLength": 1},
+    "string_list": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/non_empty_string"},
+      "uniqueItems": true
+    },
+    "intent_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "intent_id",
+        "statement",
+        "normative",
+        "coverage_status",
+        "oracle_row_ids",
+        "disposition",
+        "rationale",
+        "approval_id"
+      ],
+      "properties": {
+        "intent_id": {"$ref": "#/$defs/non_empty_string"},
+        "statement": {"$ref": "#/$defs/non_empty_string"},
+        "normative": {"type": "boolean"},
+        "coverage_status": {"type": "string", "enum": ["mapped", "disposed", "unresolved"]},
+        "oracle_row_ids": {"$ref": "#/$defs/string_list"},
+        "disposition": {
+          "type": ["string", "null"],
+          "enum": ["accepted", "superseded", "rejected", "duplicate", "out_of_scope", null]
+        },
+        "rationale": {"type": ["string", "null"]},
+        "approval_id": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

@@ -1,13 +1,13 @@
-# Forge design
+# Exakt design
 
-Forge is a portable workflow skill for Codex, Claude Code, and compatible
+Exakt is a portable workflow skill for Codex, Claude Code, and compatible
 engineering harnesses. It turns a bounded task or a full product brief into a
 repository-grounded specification, architecture, acceptance criteria, task
 plan, implementation loop, and evidence-calibrated handoff.
 
 ## Product boundary
 
-Forge is a skill plus deterministic local helpers. It is not an IDE, hosted
+Exakt is a skill plus deterministic local helpers. It is not an IDE, hosted
 service, or replacement agent runtime. The host remains responsible for tool
 permissions, process isolation, and user approval.
 
@@ -27,13 +27,13 @@ permissions, process isolation, and user approval.
 
 ## Runtime pieces
 
-- `skills/forge/SKILL.md` contains the portable reasoning workflow.
-- `skills/forge/references/` contains task, product, harness, report, and
+- `skills/exakt/SKILL.md` contains the portable reasoning workflow.
+- `skills/exakt/references/` contains task, product, harness, report, and
   verification guidance loaded only when relevant.
-- `skills/forge/agents/` defines read-only specialist roles.
-- `skills/forge/scripts/forge.py` initializes, summarizes, renders, and applies
+- `skills/exakt/agents/` defines read-only specialist roles.
+- `skills/exakt/scripts/exakt.py` initializes, summarizes, renders, and applies
   the minimal completion gate to report state.
-- `skills/forge/scripts/render_report.py` converts state into deterministic,
+- `skills/exakt/scripts/render_report.py` converts state into deterministic,
   escaped, offline HTML.
 - The contract, journal, reducer, and action helpers provide closed schemas,
   deterministic replay, crash-aware state, approval binding, and guarded
@@ -41,7 +41,7 @@ permissions, process isolation, and user approval.
 
 ## State and truth
 
-The ordinary project view uses `.forge/forge-state.json` and a regenerable HTML
+The ordinary project view uses `.exakt/exakt-state.json` and a regenerable HTML
 projection. A report may say `verified` only when it is at handoff, every
 acceptance criterion is verified, every recorded verification check is
 verified, and no declared gap remains.
@@ -67,7 +67,7 @@ conflict without erasing history.
 ### 4.10 Evidence freshness and invalidation
 
 Evidence binds to the relevant source, build, configuration, artifact, runtime,
-or external-state fingerprint. Forge invalidates proof when those dependencies
+or external-state fingerprint. Exakt invalidates proof when those dependencies
 change and records unavailable proof as a gap rather than inferring success.
 
 ## Resource limits
@@ -86,4 +86,4 @@ Inputs beyond these limits fail as controlled contract errors.
 External, destructive, costly, security-sensitive, and production actions
 still require the host to obtain explicit approval for the exact action. The
 action helper persists intent before provider I/O and reconciles ambiguous
-outcomes before any retry. Forge v1 does not initiate production deployments.
+outcomes before any retry. Exakt v1 does not initiate production deployments.

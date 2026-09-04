@@ -24,8 +24,8 @@ REQUIRED_FILES = (
     "LICENSE",
     ".codex-plugin/plugin.json",
     ".claude-plugin/plugin.json",
-    ".claude/commands/forge.md",
-    "commands/forge.toml",
+    ".claude/commands/exakt.md",
+    "commands/exakt.toml",
     "tests/__init__.py",
     "tests/test_package_structure.py",
 )
@@ -160,7 +160,7 @@ def is_safe_package_path(value):
 
 
 def parse_simple_claude_metadata(lines):
-    """Parse Forge's deliberately small, fail-closed YAML subset.
+    """Parse Exakt's deliberately small, fail-closed YAML subset.
 
     The wrapper needs only a flat mapping of unique keys to non-empty strings.
     This subset accepts conservative plain strings and JSON-compatible
@@ -212,7 +212,7 @@ def parse_simple_claude_metadata(lines):
 
 def effective_wrapper_prompt(relative_path, content):
     """Return the text the host supplies as the wrapper prompt."""
-    if relative_path == "commands/forge.toml":
+    if relative_path == "commands/exakt.toml":
         try:
             command = tomllib.loads(content)
         except tomllib.TOMLDecodeError as error:
@@ -222,7 +222,7 @@ def effective_wrapper_prompt(relative_path, content):
             raise ValueError("Codex command prompt must be a non-empty string")
         return prompt
 
-    if relative_path != ".claude/commands/forge.md":
+    if relative_path != ".claude/commands/exakt.md":
         raise ValueError(f"unsupported command wrapper: {relative_path}")
 
     lines = content.splitlines(keepends=True)
@@ -259,14 +259,14 @@ class PackageStructureTests(unittest.TestCase):
             with self.subTest(manifest=relative_path):
                 manifest = json.loads((PACKAGE_ROOT / relative_path).read_text())
                 self.assertIsInstance(manifest, dict)
-                self.assertEqual("forge", manifest.get("name"))
+                self.assertEqual("exakt", manifest.get("name"))
                 self.assertIsInstance(manifest.get("author"), dict)
                 self.assertTrue(manifest["author"].get("name"))
 
     def test_claude_manifest_path_fields_are_extracted(self):
         manifest = {
             "commands": {
-                "forge": {"source": "./commands/forge.md"},
+                "exakt": {"source": "./commands/exakt.md"},
                 "inline": {"content": "No package path here."},
             },
             "agents": ["./agents/reviewer.md"],
@@ -296,7 +296,7 @@ class PackageStructureTests(unittest.TestCase):
         }
         self.assertEqual(
             {
-                "./commands/forge.md",
+                "./commands/exakt.md",
                 "./agents/reviewer.md",
                 "./skills/",
                 "./hooks/hooks.json",
@@ -407,25 +407,25 @@ class PackageStructureTests(unittest.TestCase):
                         f"unsafe package path in {relative_path}: {declared_path}",
                     )
 
-    def test_command_wrappers_route_to_forge_skill(self):
+    def test_command_wrappers_route_to_exakt_skill(self):
         wrappers = {
-            ".claude/commands/forge.md": "$ARGUMENTS",
-            "commands/forge.toml": "{{args}}",
+            ".claude/commands/exakt.md": "$ARGUMENTS",
+            "commands/exakt.toml": "{{args}}",
         }
         for relative_path, argument_token in wrappers.items():
             with self.subTest(wrapper=relative_path):
                 wrapper = (PACKAGE_ROOT / relative_path).read_text()
                 prompt = effective_wrapper_prompt(relative_path, wrapper)
-                self.assertIn("skills/forge/SKILL.md", prompt)
+                self.assertIn("skills/exakt/SKILL.md", prompt)
                 self.assertIn(argument_token, prompt)
 
     def test_wrapper_parsers_reject_malformed_documents(self):
         malformed_wrappers = {
-            "commands/forge.toml": 'prompt = "unterminated\n',
-            ".claude/commands/forge.md": (
+            "commands/exakt.toml": 'prompt = "unterminated\n',
+            ".claude/commands/exakt.md": (
                 "---\n"
                 "description: Missing the closing delimiter\n"
-                "Read skills/forge/SKILL.md with $ARGUMENTS\n"
+                "Read skills/exakt/SKILL.md with $ARGUMENTS\n"
             ),
         }
         for relative_path, wrapper in malformed_wrappers.items():
@@ -440,17 +440,17 @@ class PackageStructureTests(unittest.TestCase):
             "description: {}",
             "description: true",
             "description: 42",
-            "description: &description Run Forge",
-            "description: Run Forge: now",
+            "description: &description Run Exakt",
+            "description: Run Exakt: now",
         ):
             with self.subTest(metadata_line=metadata_line):
                 wrapper = (
                     f"---\n{metadata_line}\n---\n"
-                    "Read skills/forge/SKILL.md with $ARGUMENTS\n"
+                    "Read skills/exakt/SKILL.md with $ARGUMENTS\n"
                 )
                 with self.assertRaises(ValueError):
                     effective_wrapper_prompt(
-                        ".claude/commands/forge.md",
+                        ".claude/commands/exakt.md",
                         wrapper,
                     )
 
@@ -458,39 +458,39 @@ class PackageStructureTests(unittest.TestCase):
         wrapper = (
             "---\n"
             "# Full-line comments are part of the supported subset.\n"
-            "description: Run Forge's verification-first workflow\n"
+            "description: Run Exakt's verification-first workflow\n"
             'argument-hint: "Task or product brief"\n'
             "---\n"
-            "Read skills/forge/SKILL.md with $ARGUMENTS\n"
+            "Read skills/exakt/SKILL.md with $ARGUMENTS\n"
         )
         prompt = effective_wrapper_prompt(
-            ".claude/commands/forge.md",
+            ".claude/commands/exakt.md",
             wrapper,
         )
         self.assertEqual(
-            "Read skills/forge/SKILL.md with $ARGUMENTS\n",
+            "Read skills/exakt/SKILL.md with $ARGUMENTS\n",
             prompt,
         )
 
     def test_wrapper_tokens_in_metadata_or_comments_do_not_count(self):
         misleading_wrappers = {
-            "commands/forge.toml": (
+            "commands/exakt.toml": (
                 'description = "No route"\n'
-                "# skills/forge/SKILL.md {{args}}\n"
+                "# skills/exakt/SKILL.md {{args}}\n"
                 'prompt = "Do something else"\n'
             ),
-            ".claude/commands/forge.md": (
+            ".claude/commands/exakt.md": (
                 "---\n"
-                "description: skills/forge/SKILL.md $ARGUMENTS\n"
+                "description: skills/exakt/SKILL.md $ARGUMENTS\n"
                 "---\n"
-                "<!-- skills/forge/SKILL.md $ARGUMENTS -->\n"
+                "<!-- skills/exakt/SKILL.md $ARGUMENTS -->\n"
                 "Do something else.\n"
             ),
         }
         for relative_path, wrapper in misleading_wrappers.items():
             with self.subTest(wrapper=relative_path):
                 prompt = effective_wrapper_prompt(relative_path, wrapper)
-                self.assertNotIn("skills/forge/SKILL.md", prompt)
+                self.assertNotIn("skills/exakt/SKILL.md", prompt)
                 expected_token = (
                     "$ARGUMENTS"
                     if relative_path.endswith(".md")
@@ -499,7 +499,7 @@ class PackageStructureTests(unittest.TestCase):
                 self.assertNotIn(expected_token, prompt)
 
     def test_red_evidence_git_ignores_replacement_objects(self):
-        with tempfile.TemporaryDirectory(prefix="forge-git-replace-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-git-replace-") as temp_dir:
             repo_root = Path(temp_dir)
             subprocess.run(
                 ("git", "init", "--quiet", str(repo_root)),
@@ -566,18 +566,18 @@ class PackageStructureTests(unittest.TestCase):
 
     def test_path_guard_rejects_absolute_and_escaping_paths(self):
         for unsafe_path in (
-            "/tmp/forge",
-            "../forge",
-            "./skills/../../forge",
-            r"C:\forge",
-            r"C:..\forge",
-            r"C:forge",
+            "/tmp/exakt",
+            "../exakt",
+            "./skills/../../exakt",
+            r"C:\exakt",
+            r"C:..\exakt",
+            r"C:exakt",
             "C:",
-            r"Z:.\forge",
-            r"..\forge",
-            r"safe\..\forge",
-            r"\\server\share\forge",
-            r"\\?\C:\forge",
+            r"Z:.\exakt",
+            r"..\exakt",
+            r"safe\..\exakt",
+            r"\\server\share\exakt",
+            r"\\?\C:\exakt",
         ):
             with self.subTest(path=unsafe_path):
                 self.assertFalse(is_safe_package_path(unsafe_path))
@@ -586,8 +586,8 @@ class PackageStructureTests(unittest.TestCase):
         for safe_path in (
             ".",
             "./skills/",
-            "commands/forge.toml",
-            r"skills\forge\SKILL.md",
+            "commands/exakt.toml",
+            r"skills\exakt\SKILL.md",
             "assets/my..icon.png",
             "themes/dark/theme.json",
         ):

@@ -10,13 +10,13 @@ from pathlib import Path
 
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
-SCHEMA_ROOT = PACKAGE_ROOT / "skills/forge/schemas"
-SCRIPTS_ROOT = PACKAGE_ROOT / "skills/forge/scripts"
+SCHEMA_ROOT = PACKAGE_ROOT / "skills/exakt/schemas"
+SCRIPTS_ROOT = PACKAGE_ROOT / "skills/exakt/scripts"
 CONTRACTS_PATH = SCRIPTS_ROOT / "contracts.py"
 CLI_PATH = SCRIPTS_ROOT / "validate_state.py"
 FIXTURE_ROOT = PACKAGE_ROOT / "tests/fixtures/contracts"
 DESIGN_SPEC = PACKAGE_ROOT / "docs/design.md"
-SCHEMA_BASE_ID = "urn:forge:schema:"
+SCHEMA_BASE_ID = "urn:exakt:schema:"
 
 
 def stable_schema_id(filename):
@@ -36,7 +36,7 @@ REQUIRED_SCHEMAS = (
     "verification-bundle-v1.json",
     "verifier-attestation-v1.json",
     "external-action-v1.json",
-    "forge-feedback-v1.json",
+    "exakt-feedback-v1.json",
     "specialist-manifest-v1.json",
     "agent-envelope-v1.json",
 )
@@ -98,7 +98,7 @@ EXPECTED_ENUMS = {
 def load_contracts_module():
     if not CONTRACTS_PATH.is_file():
         raise AssertionError(f"missing validator module: {CONTRACTS_PATH}")
-    spec = importlib.util.spec_from_file_location("forge_contracts", CONTRACTS_PATH)
+    spec = importlib.util.spec_from_file_location("exakt_contracts", CONTRACTS_PATH)
     if spec is None or spec.loader is None:
         raise AssertionError(f"cannot import validator module: {CONTRACTS_PATH}")
     module = importlib.util.module_from_spec(spec)
@@ -149,7 +149,7 @@ def iter_json_strings(value):
 def write_probe_schema(root, value_schema, definitions=None):
     schema = {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "urn:forge:schema:probe-v1",
+        "$id": "urn:exakt:schema:probe-v1",
         "type": "object",
         "additionalProperties": False,
         "required": ["schema_version", "value"],
@@ -218,7 +218,7 @@ class SchemaDocumentTests(unittest.TestCase):
             document = json.loads(path.read_text(encoding="utf-8"))
             for value in iter_json_strings(document):
                 with self.subTest(path=path.name, value=value):
-                    self.assertFalse(value.startswith("https://forge.openai.com/"))
+                    self.assertFalse(value.startswith("https://exakt.openai.com/"))
 
     def test_every_object_shape_has_explicit_fail_closed_additional_properties(self):
         for filename in REQUIRED_SCHEMAS:
@@ -234,7 +234,7 @@ class SchemaDocumentTests(unittest.TestCase):
                         self.assertIs(
                             False,
                             node["additionalProperties"],
-                            "Forge object contracts must reject unknown fields",
+                            "Exakt object contracts must reject unknown fields",
                         )
 
     def test_normative_enums_are_complete_and_orthogonal(self):
@@ -334,7 +334,7 @@ class ContractValidationTests(unittest.TestCase):
         ):
             self.registry.validate(
                 document,
-                "urn:forge:schema:approval-v99",
+                "urn:exakt:schema:approval-v99",
             )
 
         document["schema_version"] = "approval-v99"
@@ -694,7 +694,7 @@ class ContractValidationTests(unittest.TestCase):
             "const": [True],
             "enum": [[True]],
         }
-        with tempfile.TemporaryDirectory(prefix="forge-contract-equality-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-contract-equality-") as temp_dir:
             write_probe_schema(temp_dir, value_schema)
             registry = self.contracts.ContractRegistry(temp_dir)
             with self.assertRaises(self.contracts.ContractError):
@@ -712,7 +712,7 @@ class ContractValidationTests(unittest.TestCase):
             "items": {"type": ["boolean", "integer"]},
             "uniqueItems": True,
         }
-        with tempfile.TemporaryDirectory(prefix="forge-contract-unique-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-contract-unique-") as temp_dir:
             write_probe_schema(temp_dir, value_schema)
             registry = self.contracts.ContractRegistry(temp_dir)
             registry.validate(
@@ -846,13 +846,13 @@ class ContractValidationTests(unittest.TestCase):
             ({"title": []}, "title must be a string"),
             ({"description": 1}, "description must be a string"),
             ({"$id": []}, r"\$id must be a string"),
-            ({"$id": "urn:forge:nested"}, "nested resource identifiers"),
+            ({"$id": "urn:exakt:nested"}, "nested resource identifiers"),
             ({"$schema": self.contracts.SCHEMA_DIALECT}, "nested schema dialects"),
         )
         for metadata, message in cases:
             with self.subTest(metadata=metadata):
                 with tempfile.TemporaryDirectory(
-                    prefix="forge-contract-metadata-"
+                    prefix="exakt-contract-metadata-"
                 ) as temp_dir:
                     write_probe_schema(
                         temp_dir,
@@ -868,7 +868,7 @@ class ContractValidationTests(unittest.TestCase):
             "text": {"type": "string", "minLength": 1},
         }
         value_schema = {"$ref": "#/$defs/text", "minLength": 3}
-        with tempfile.TemporaryDirectory(prefix="forge-contract-ref-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-contract-ref-") as temp_dir:
             write_probe_schema(temp_dir, value_schema, definitions)
             registry = self.contracts.ContractRegistry(temp_dir)
             with self.assertRaisesRegex(self.contracts.ContractError, "at least 1"):
@@ -884,7 +884,7 @@ class ContractValidationTests(unittest.TestCase):
                 "minItems": 1,
             }
         }
-        with tempfile.TemporaryDirectory(prefix="forge-contract-array-ref-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-contract-array-ref-") as temp_dir:
             write_probe_schema(
                 temp_dir,
                 {"$ref": "#/$defs/names", "minItems": 2},
@@ -905,7 +905,7 @@ class ContractValidationTests(unittest.TestCase):
                 "properties": {"name": {"type": "string"}},
             }
         }
-        with tempfile.TemporaryDirectory(prefix="forge-contract-object-ref-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-contract-object-ref-") as temp_dir:
             write_probe_schema(
                 temp_dir,
                 {"$ref": "#/$defs/payload", "required": ["name"]},
@@ -915,14 +915,14 @@ class ContractValidationTests(unittest.TestCase):
             with self.assertRaisesRegex(self.contracts.ContractError, "required field"):
                 registry.validate({"schema_version": "probe-v1", "value": {}})
             registry.validate(
-                {"schema_version": "probe-v1", "value": {"name": "Forge"}}
+                {"schema_version": "probe-v1", "value": {"name": "Exakt"}}
             )
 
         cyclic = {
             "first": {"$ref": "#/$defs/second"},
             "second": {"$ref": "#/$defs/first"},
         }
-        with tempfile.TemporaryDirectory(prefix="forge-contract-cycle-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-contract-cycle-") as temp_dir:
             write_probe_schema(temp_dir, {"$ref": "#/$defs/first"}, cyclic)
             with self.assertRaisesRegex(
                 self.contracts.SchemaDefinitionError, "cyclic"
@@ -930,7 +930,7 @@ class ContractValidationTests(unittest.TestCase):
                 self.contracts.ContractRegistry(temp_dir)
 
     def test_malformed_root_definitions_fail_before_reference_resolution(self):
-        with tempfile.TemporaryDirectory(prefix="forge-contract-defs-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-contract-defs-") as temp_dir:
             write_probe_schema(temp_dir, {"$ref": "#/$defs/d0"})
             schema_path = Path(temp_dir) / "probe-v1.json"
             schema = json.loads(schema_path.read_text(encoding="utf-8"))
@@ -949,7 +949,7 @@ class ContractValidationTests(unittest.TestCase):
             for index in range(1100)
         }
         definitions["d1100"] = {"type": "string"}
-        with tempfile.TemporaryDirectory(prefix="forge-contract-ref-limit-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-contract-ref-limit-") as temp_dir:
             write_probe_schema(
                 temp_dir,
                 {"$ref": "#/$defs/d0"},
@@ -962,7 +962,7 @@ class ContractValidationTests(unittest.TestCase):
                 self.contracts.ContractRegistry(temp_dir)
 
     def test_validator_reads_contract_rules_from_schema_documents(self):
-        with tempfile.TemporaryDirectory(prefix="forge-contract-schema-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-contract-schema-") as temp_dir:
             copied_root = Path(temp_dir) / "schemas"
             shutil.copytree(SCHEMA_ROOT, copied_root)
             approval_path = copied_root / "approval-v1.json"
@@ -981,7 +981,7 @@ class ContractValidationTests(unittest.TestCase):
                 )
 
     def test_keyword_type_applicability_fails_closed(self):
-        with tempfile.TemporaryDirectory(prefix="forge-contract-keyword-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-contract-keyword-") as temp_dir:
             copied_root = Path(temp_dir) / "schemas"
             shutil.copytree(SCHEMA_ROOT, copied_root)
             schema_path = copied_root / "approval-v1.json"
@@ -996,7 +996,7 @@ class ContractValidationTests(unittest.TestCase):
                 self.contracts.ContractRegistry(copied_root)
 
     def test_actual_unsupported_validation_keywords_fail_closed(self):
-        with tempfile.TemporaryDirectory(prefix="forge-contract-unsupported-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-contract-unsupported-") as temp_dir:
             write_probe_schema(
                 temp_dir,
                 {"type": "string", "maxLength": 10},
@@ -1008,7 +1008,7 @@ class ContractValidationTests(unittest.TestCase):
                 self.contracts.ContractRegistry(temp_dir)
 
     def test_regex_resource_errors_fail_as_schema_definition_errors(self):
-        with tempfile.TemporaryDirectory(prefix="forge-contract-regex-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-contract-regex-") as temp_dir:
             write_probe_schema(
                 temp_dir,
                 {
@@ -1041,7 +1041,7 @@ class ContractValidationTests(unittest.TestCase):
             )
             for value_schema, value in schemas_and_values:
                 temp_root = tempfile.TemporaryDirectory(
-                    prefix="forge-contract-bound-"
+                    prefix="exakt-contract-bound-"
                 )
                 temp_roots.append((temp_root, value))
                 write_probe_schema(temp_root.name, value_schema)

@@ -10,11 +10,11 @@ from pathlib import Path
 
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
-STATE_STORE_PATH = PACKAGE_ROOT / "skills/forge/scripts/state_store.py"
+STATE_STORE_PATH = PACKAGE_ROOT / "skills/exakt/scripts/state_store.py"
 
 
 def load_state_store_module():
-    spec = importlib.util.spec_from_file_location("forge_journal_store", STATE_STORE_PATH)
+    spec = importlib.util.spec_from_file_location("exakt_journal_store", STATE_STORE_PATH)
     if spec is None or spec.loader is None:
         raise AssertionError(f"cannot import state-store module: {STATE_STORE_PATH}")
     module = importlib.util.module_from_spec(spec)
@@ -54,7 +54,7 @@ class DurableJournalTests(unittest.TestCase):
         record_hash = "a" * 64
         expected = hashlib.sha256(
             (
-                "forge-state-v1\n"
+                "exakt-state-v1\n"
                 + self.scope_id
                 + "\n"
                 + self.work_item_id
@@ -78,7 +78,7 @@ class DurableJournalTests(unittest.TestCase):
             genesis,
         )
         self.assertEqual(
-            "96a76b577260a0589957f90c32643ade9bd345819c2e28246d76ede75e406e0e",
+            "8a0682358cde1c30c42d9486000b737a883d7fbd68772d35290b0c22e05e858b",
             self.store.compute_state_root(
                 self.scope_id, self.work_item_id, 1, "3" * 64
             ),
@@ -91,7 +91,7 @@ class DurableJournalTests(unittest.TestCase):
                     )
 
     def test_object_and_record_hash_golden_vectors_are_unframed(self):
-        with tempfile.TemporaryDirectory(prefix="forge-journal-golden-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-journal-golden-") as temp_dir:
             journal = self.make_journal(Path(temp_dir))
             payload = {"kind": "probe", "text": "é"}
             expected_object = b'{"kind":"probe","text":"\xc3\xa9"}'
@@ -112,7 +112,7 @@ class DurableJournalTests(unittest.TestCase):
                 expected_state_root=journal.genesis_state_root,
             )
             self.assertEqual(
-                "066eb4639c5f7efb44e5d1edcafc7b24999df258af8fa5c9b7df35c5cdf9e434",
+                "b51edff73d8a3a9cac80a0ae9b12b723ce7b026c0ae2afada35e02b8e570b592",
                 result.record_hash,
             )
             record = journal.inspect().records[0]
@@ -122,7 +122,7 @@ class DurableJournalTests(unittest.TestCase):
             self.assertTrue(journal.journal_path.read_bytes().endswith(b"\n"))
 
     def test_content_addressed_objects_are_canonical_private_and_idempotent(self):
-        with tempfile.TemporaryDirectory(prefix="forge-object-store-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-object-store-") as temp_dir:
             journal = self.make_journal(Path(temp_dir))
             value = {"z": [3, 2, 1], "a": "value"}
             digest = journal.put_object(value)
@@ -140,7 +140,7 @@ class DurableJournalTests(unittest.TestCase):
             self.assertEqual([path.name], sorted(item.name for item in path.parent.iterdir()))
 
     def test_unicode_is_not_normalized_and_corrupt_digest_target_is_never_replaced(self):
-        with tempfile.TemporaryDirectory(prefix="forge-object-integrity-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-object-integrity-") as temp_dir:
             journal = self.make_journal(Path(temp_dir))
             nfc = journal.put_object({"text": "é"})
             nfd = journal.put_object({"text": "e\u0301"})
@@ -158,7 +158,7 @@ class DurableJournalTests(unittest.TestCase):
             self.assertEqual(corrupt, target.read_bytes())
 
     def test_invalid_event_is_rejected_before_object_or_journal_mutation(self):
-        with tempfile.TemporaryDirectory(prefix="forge-journal-preflight-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-journal-preflight-") as temp_dir:
             journal = self.make_journal(Path(temp_dir))
             payload = {"must": "remain absent"}
             digest = hashlib.sha256(
@@ -194,7 +194,7 @@ class DurableJournalTests(unittest.TestCase):
             self.assertFalse(journal.journal_path.exists())
 
     def test_append_writes_object_then_canonical_hash_chain(self):
-        with tempfile.TemporaryDirectory(prefix="forge-journal-chain-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-journal-chain-") as temp_dir:
             journal = self.make_journal(Path(temp_dir))
             genesis = journal.genesis_state_root
             first = self.append(journal, {"value": 1}, genesis, "1")
@@ -239,7 +239,7 @@ class DurableJournalTests(unittest.TestCase):
             )
 
     def test_stale_expected_root_is_rejected_without_mutating_journal(self):
-        with tempfile.TemporaryDirectory(prefix="forge-journal-cas-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-journal-cas-") as temp_dir:
             journal = self.make_journal(Path(temp_dir))
             genesis = journal.genesis_state_root
             first = self.append(journal, {"value": 1}, genesis)
@@ -252,7 +252,7 @@ class DurableJournalTests(unittest.TestCase):
             self.assertEqual(first.state_root, journal.inspect().state_root)
 
     def test_orphan_valid_object_is_tolerated_but_corrupt_object_blocks_replay(self):
-        with tempfile.TemporaryDirectory(prefix="forge-journal-objects-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-journal-objects-") as temp_dir:
             journal = self.make_journal(Path(temp_dir))
             orphan = journal.put_object({"orphan": True})
             empty = journal.inspect()
@@ -278,7 +278,7 @@ class DurableJournalTests(unittest.TestCase):
         mutations = ("sequence", "previous_record_hash", "record_hash")
         for field in mutations:
             with self.subTest(field=field):
-                with tempfile.TemporaryDirectory(prefix="forge-journal-chain-bad-") as temp_dir:
+                with tempfile.TemporaryDirectory(prefix="exakt-journal-chain-bad-") as temp_dir:
                     journal = self.make_journal(Path(temp_dir))
                     first = self.append(
                         journal, {"value": 1}, journal.genesis_state_root, "1"
@@ -309,7 +309,7 @@ class DurableJournalTests(unittest.TestCase):
         }
         for field, value in mutations.items():
             with self.subTest(field=field):
-                with tempfile.TemporaryDirectory(prefix="forge-journal-envelope-") as temp_dir:
+                with tempfile.TemporaryDirectory(prefix="exakt-journal-envelope-") as temp_dir:
                     journal = self.make_journal(Path(temp_dir))
                     self.append(journal, {"value": 1}, journal.genesis_state_root)
                     record = dict(journal.inspect().records[0])
@@ -339,7 +339,7 @@ class DurableJournalTests(unittest.TestCase):
     def test_noncanonical_framing_is_diagnosed_without_modifying_bytes(self):
         for variant in ("missing_lf", "whitespace", "crlf", "bom", "blank"):
             with self.subTest(variant=variant):
-                with tempfile.TemporaryDirectory(prefix="forge-journal-framing-") as temp_dir:
+                with tempfile.TemporaryDirectory(prefix="exakt-journal-framing-") as temp_dir:
                     journal = self.make_journal(Path(temp_dir))
                     self.append(journal, {"value": 1}, journal.genesis_state_root)
                     valid = journal.journal_path.read_bytes()
@@ -366,7 +366,7 @@ class DurableJournalTests(unittest.TestCase):
                         )
 
     def test_truncated_tail_recovers_only_after_explicit_prefix_cas_and_preserves_bytes(self):
-        with tempfile.TemporaryDirectory(prefix="forge-journal-truncated-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-journal-truncated-") as temp_dir:
             journal = self.make_journal(Path(temp_dir))
             first = self.append(journal, {"value": 1}, journal.genesis_state_root, "1")
             original = journal.journal_path.read_bytes()
@@ -388,7 +388,7 @@ class DurableJournalTests(unittest.TestCase):
             self.assertEqual(1, len(journal.inspect().records))
 
     def test_every_truncation_offset_reports_the_exact_longest_valid_prefix(self):
-        with tempfile.TemporaryDirectory(prefix="forge-journal-all-truncations-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-journal-all-truncations-") as temp_dir:
             journal = self.make_journal(Path(temp_dir))
             first = self.append(journal, {"value": 1}, journal.genesis_state_root, "1")
             self.append(journal, {"value": 2}, first.state_root, "2")
@@ -424,7 +424,7 @@ class DurableJournalTests(unittest.TestCase):
                     )
 
     def test_clean_suffix_truncation_is_detected_and_cannot_be_appended_over(self):
-        with tempfile.TemporaryDirectory(prefix="forge-journal-clean-truncate-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-journal-clean-truncate-") as temp_dir:
             journal = self.make_journal(Path(temp_dir))
             first = self.append(journal, {"value": 1}, journal.genesis_state_root, "1")
             first_bytes = journal.journal_path.read_bytes()
@@ -446,7 +446,7 @@ class DurableJournalTests(unittest.TestCase):
     def test_missing_corrupt_or_unsafe_head_never_falls_back_to_journal_alone(self):
         for variant in ("missing", "corrupt", "unsafe_mode"):
             with self.subTest(variant=variant):
-                with tempfile.TemporaryDirectory(prefix="forge-journal-head-bad-") as temp_dir:
+                with tempfile.TemporaryDirectory(prefix="exakt-journal-head-bad-") as temp_dir:
                     base = Path(temp_dir)
                     journal = self.make_journal(base)
                     committed = self.append(
@@ -478,7 +478,7 @@ class DurableJournalTests(unittest.TestCase):
         class SimulatedCrash(RuntimeError):
             pass
 
-        with tempfile.TemporaryDirectory(prefix="forge-journal-pending-head-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-journal-pending-head-") as temp_dir:
             base = Path(temp_dir)
             state_home = base / "state"
             state_home.mkdir(mode=0o700)
@@ -515,7 +515,7 @@ class DurableJournalTests(unittest.TestCase):
             self.assertEqual(final.state_root, inspection.head_state_root)
 
     def test_crash_window_artifacts_are_quarantined_without_becoming_authority(self):
-        with tempfile.TemporaryDirectory(prefix="forge-journal-crash-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-journal-crash-") as temp_dir:
             journal = self.make_journal(Path(temp_dir))
             object_temp = journal.objects_path / ".payload.tmp-before-object-install"
             object_temp.write_bytes(b"partial object")
@@ -548,7 +548,7 @@ class DurableJournalTests(unittest.TestCase):
         program = r'''
 import importlib.util, os, sys
 module_path, state_home, scope_id, work_item_id, point, expected = sys.argv[1:]
-spec = importlib.util.spec_from_file_location("forge_crash_child_" + point, module_path)
+spec = importlib.util.spec_from_file_location("exakt_crash_child_" + point, module_path)
 module = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = module
 spec.loader.exec_module(module)
@@ -581,7 +581,7 @@ raise SystemExit(2)
             head_pending,
         ) in expectations.items():
             with self.subTest(point=point):
-                with tempfile.TemporaryDirectory(prefix="forge-real-crash-") as temp_dir:
+                with tempfile.TemporaryDirectory(prefix="exakt-real-crash-") as temp_dir:
                     journal = self.make_journal(Path(temp_dir))
                     first = self.append(
                         journal, {"value": 1}, journal.genesis_state_root
@@ -633,7 +633,7 @@ raise SystemExit(2)
                     self.assertTrue(journal.inspect().complete)
 
     def test_quarantine_refuses_symlinked_temp_without_following_it(self):
-        with tempfile.TemporaryDirectory(prefix="forge-quarantine-link-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-quarantine-link-") as temp_dir:
             base = Path(temp_dir)
             journal = self.make_journal(base)
             victim = base / "victim"
@@ -662,13 +662,13 @@ raise SystemExit(2)
 
     @unittest.skipUnless(os.name == "posix", "POSIX process locking required")
     def test_two_processes_from_same_root_produce_one_append_and_one_conflict(self):
-        with tempfile.TemporaryDirectory(prefix="forge-journal-race-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-journal-race-") as temp_dir:
             base = Path(temp_dir)
             journal = self.make_journal(base)
             program = r'''
 import importlib.util, json, pathlib, sys
 module_path, state_home, scope_id, work_item_id, suffix, expected = sys.argv[1:]
-spec = importlib.util.spec_from_file_location("forge_journal_child_" + suffix, module_path)
+spec = importlib.util.spec_from_file_location("exakt_journal_child_" + suffix, module_path)
 module = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = module
 spec.loader.exec_module(module)

@@ -7,8 +7,8 @@ from pathlib import Path
 
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
-ACTIONS_PATH = PACKAGE_ROOT / "skills/forge/scripts/actions.py"
-REDUCER_PATH = PACKAGE_ROOT / "skills/forge/scripts/reducer.py"
+ACTIONS_PATH = PACKAGE_ROOT / "skills/exakt/scripts/actions.py"
+REDUCER_PATH = PACKAGE_ROOT / "skills/exakt/scripts/reducer.py"
 
 
 def load(path, name):
@@ -24,8 +24,8 @@ def load(path, name):
 class ExternalActionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.reducer = load(REDUCER_PATH, "forge_reducer_for_actions_tests")
-        cls.actions = load(ACTIONS_PATH, "forge_actions")
+        cls.reducer = load(REDUCER_PATH, "exakt_reducer_for_actions_tests")
+        cls.actions = load(ACTIONS_PATH, "exakt_actions")
         cls.now = datetime(2026, 9, 3, 12, 0, tzinfo=timezone.utc)
         cls.root = "c" * 64
         cls.digest = "a" * 64

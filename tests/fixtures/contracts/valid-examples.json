@@ -217,7 +217,7 @@
     },
     "exclusions": [
       {
-        "path": ".forge",
+        "path": ".exakt",
         "reason": "projection"
       }
     ]
@@ -231,7 +231,7 @@
     "subject_digest": "9999999999999999999999999999999999999999999999999999999999999999",
     "operation": {
       "kind": "command",
-      "description": "python3 -m unittest projects/forge-skill/tests/test_contracts.py -v"
+      "description": "python3 -m unittest projects/exakt/tests/test_contracts.py -v"
     },
     "execution_envelope": {
       "input_manifest_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -400,8 +400,8 @@
       }
     ]
   },
-  "forge-feedback-v1.json": {
-    "schema_version": "forge-feedback-v1",
+  "exakt-feedback-v1.json": {
+    "schema_version": "exakt-feedback-v1",
     "feedback_id": "feedback-001",
     "work_item_id": "work-001",
     "expected_state_root": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -424,8 +424,8 @@
     "manifest_id": "specialist-001",
     "capability_id": "contract-review",
     "entry_point": "skills/reviewer/SKILL.md",
-    "input_schema_id": "urn:forge:schema:verification-bundle-v1",
-    "output_schema_id": "urn:forge:schema:agent-envelope-v1",
+    "input_schema_id": "urn:exakt:schema:verification-bundle-v1",
+    "output_schema_id": "urn:exakt:schema:agent-envelope-v1",
     "side_effect_class": "local_read",
     "read_sets": ["schemas/**"],
     "write_sets": [],
@@ -434,7 +434,7 @@
     "verifier_claim_types": ["contract_validation"],
     "required_tools": ["python3"],
     "source": {
-      "uri": "package:forge",
+      "uri": "package:exakt",
       "version": "1",
       "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     },
@@ -470,7 +470,7 @@
     },
     "outputs": [
       {
-        "schema_id": "urn:forge:schema:verification-ledger-v1",
+        "schema_id": "urn:exakt:schema:verification-ledger-v1",
         "object_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
       }
     ],

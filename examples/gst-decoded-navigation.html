@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="generator" content="Forge local report renderer">
-  <title>GST Decoded chapter navigation — Forge report</title>
+  <meta name="generator" content="Exakt local report renderer">
+  <title>GST Decoded chapter navigation — Exakt report</title>
   <style>
     :root {
       color-scheme: light;
@@ -591,10 +591,10 @@
 </head>
 <body>
   <a class="skip-link" href="#report-main">Skip to report</a>
-  <header class="masthead" data-schema-version="forge-report-v1">
+  <header class="masthead" data-schema-version="exakt-report-v1">
     <div class="masthead-grid">
       <div>
-        <p class="kicker">Forge / task studio report</p>
+        <p class="kicker">Exakt / task studio report</p>
         <h1>GST Decoded chapter navigation</h1>
       </div>
       <div>
@@ -628,7 +628,7 @@
       <aside class="feedback" aria-labelledby="feedback-title">
         <p class="micro-label">Local review loop</p>
         <h2 id="feedback-title">Leave the work sharper.</h2>
-        <p>Draft only — this feedback grants no approval. Copy or download a local JSON proposal, then review it through Forge.</p>
+        <p>Draft only — this feedback grants no approval. Copy or download a local JSON proposal, then review it through Exakt.</p>
         <label for="feedback-text">Feedback for this report</label>
         <textarea id="feedback-text" placeholder="Name the claim, decision, or task you want changed."></textarea>
         <div class="button-row">
@@ -636,7 +636,7 @@
           <button type="button" id="download-feedback">Download JSON</button>
           <button type="button" id="expand-all">Expand details</button>
           <button type="button" id="collapse-all">Collapse details</button>
-          <a id="feedback-download-anchor" hidden download="forge-feedback.json"></a>
+          <a id="feedback-download-anchor" hidden download="exakt-feedback.json"></a>
         </div>
         <p id="feedback-status" class="feedback-status" aria-live="polite"></p>
       </aside>
@@ -653,7 +653,7 @@
       const feedbackStatus = document.getElementById("feedback-status");
 
       const feedbackDocument = () => ({
-        schema_version: "forge-feedback-v1",
+        schema_version: "exakt-feedback-v1",
         feedback_id: "feedback-draft",
         work_item_id: "unbound-report",
         expected_state_root: "0000000000000000000000000000000000000000000000000000000000000000",

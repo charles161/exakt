@@ -1,1 +1,1 @@
-"""Tests for the Forge plugin package."""
+"""Tests for the Exakt plugin package."""

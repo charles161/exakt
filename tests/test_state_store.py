@@ -11,7 +11,7 @@ from unittest import mock
 
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
-SCRIPTS_ROOT = PACKAGE_ROOT / "skills/forge/scripts"
+SCRIPTS_ROOT = PACKAGE_ROOT / "skills/exakt/scripts"
 STATE_STORE_PATH = SCRIPTS_ROOT / "state_store.py"
 FIXTURE_ROOT = PACKAGE_ROOT / "tests/fixtures/state-store"
 
@@ -19,7 +19,7 @@ FIXTURE_ROOT = PACKAGE_ROOT / "tests/fixtures/state-store"
 def load_state_store_module():
     if not STATE_STORE_PATH.is_file():
         raise AssertionError(f"missing state-store module: {STATE_STORE_PATH}")
-    spec = importlib.util.spec_from_file_location("forge_state_store", STATE_STORE_PATH)
+    spec = importlib.util.spec_from_file_location("exakt_state_store", STATE_STORE_PATH)
     if spec is None or spec.loader is None:
         raise AssertionError(f"cannot import state-store module: {STATE_STORE_PATH}")
     module = importlib.util.module_from_spec(spec)
@@ -36,7 +36,7 @@ class StateStoreTestCase(unittest.TestCase):
 
 class ImportIsolationTests(unittest.TestCase):
     def test_file_import_never_executes_cwd_contracts_module(self):
-        with tempfile.TemporaryDirectory(prefix="forge-import-isolation-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-import-isolation-") as temp_dir:
             cwd = Path(temp_dir)
             sentinel = cwd / "executed"
             (cwd / "contracts.py").write_text(
@@ -61,7 +61,7 @@ class ImportIsolationTests(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(0, result.returncode, result.stderr)
-            self.assertEqual("forge-canonical-json-v1", result.stdout.strip())
+            self.assertEqual("exakt-canonical-json-v1", result.stdout.strip())
             self.assertFalse(sentinel.exists())
 
 
@@ -111,11 +111,11 @@ class CanonicalJsonTests(StateStoreTestCase):
                     self.store.parse_json_bytes(payload)
 
         with self.assertRaisesRegex(
-            self.store.CanonicalStateError, "not Forge Canonical JSON v1"
+            self.store.CanonicalStateError, "not Exakt Canonical JSON v1"
         ):
             self.store.parse_json_bytes(b'{"b":2, "a":1}', require_canonical=True)
         with self.assertRaisesRegex(
-            self.store.CanonicalStateError, "not Forge Canonical JSON v1"
+            self.store.CanonicalStateError, "not Exakt Canonical JSON v1"
         ):
             self.store.parse_json_bytes(
                 b'{"v":"\\u00e9"}', require_canonical=True
@@ -173,14 +173,14 @@ class CanonicalJsonTests(StateStoreTestCase):
 
 class StateHomeResolutionTests(StateStoreTestCase):
     def test_resolution_precedence_is_pure_and_platform_explicit(self):
-        with tempfile.TemporaryDirectory(prefix="forge-state-resolution-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-state-resolution-") as temp_dir:
             base = Path(temp_dir)
             explicit = base / "explicit"
             xdg = base / "xdg"
             home = base / "home"
             local = base / "local"
             env = {
-                "FORGE_STATE_HOME": str(explicit),
+                "EXAKT_STATE_HOME": str(explicit),
                 "XDG_STATE_HOME": str(xdg),
                 "LOCALAPPDATA": str(local),
             }
@@ -190,31 +190,31 @@ class StateHomeResolutionTests(StateStoreTestCase):
             )
             self.assertFalse(explicit.exists())
 
-            env.pop("FORGE_STATE_HOME")
+            env.pop("EXAKT_STATE_HOME")
             self.assertEqual(
-                xdg / "forge",
+                xdg / "exakt",
                 self.store.resolve_state_home(env, platform_name="darwin", home=home),
             )
             env.pop("XDG_STATE_HOME")
             self.assertEqual(
-                home / "Library/Application Support/Forge",
+                home / "Library/Application Support/Exakt",
                 self.store.resolve_state_home(env, platform_name="darwin", home=home),
             )
             self.assertEqual(
-                local / "Forge",
+                local / "Exakt",
                 self.store.resolve_state_home(env, platform_name="win32", home=home),
             )
             self.assertEqual(
-                home / ".local/state/forge",
+                home / ".local/state/exakt",
                 self.store.resolve_state_home({}, platform_name="linux", home=home),
             )
 
     def test_empty_relative_or_missing_required_roots_fail_closed(self):
         for env in (
-            {"FORGE_STATE_HOME": ""},
-            {"FORGE_STATE_HOME": "relative/path"},
-            {"FORGE_STATE_HOME": "/tmp/bad\0path"},
-            {"FORGE_STATE_HOME": "/tmp/bad\ud800path"},
+            {"EXAKT_STATE_HOME": ""},
+            {"EXAKT_STATE_HOME": "relative/path"},
+            {"EXAKT_STATE_HOME": "/tmp/bad\0path"},
+            {"EXAKT_STATE_HOME": "/tmp/bad\ud800path"},
             {"XDG_STATE_HOME": "relative/path"},
         ):
             with self.subTest(env=env):
@@ -237,7 +237,7 @@ class StateHomeResolutionTests(StateStoreTestCase):
                     )
                 with self.assertRaises(self.store.StateHomeError):
                     self.store.resolve_state_home(
-                        {"FORGE_STATE_HOME": "~/state"},
+                        {"EXAKT_STATE_HOME": "~/state"},
                         platform_name="linux",
                         home=invalid_path,
                     )
@@ -257,7 +257,7 @@ class StateHomeResolutionTests(StateStoreTestCase):
             lambda: self.store.assert_safe_state_home_path("/tmp/state", None),
             lambda: self.store.resolve_state_home({}, home=[]),
             lambda: self.store.resolve_state_home({}, platform_name=[]),
-            lambda: self.store.RepositoryRegistry("/tmp/forge-does-not-exist"),
+            lambda: self.store.RepositoryRegistry("/tmp/exakt-does-not-exist"),
             lambda: self.store.work_item_state_path(None, scope, work),
             lambda: self.store.scrub_state_environment(None),
             lambda: self.store.scrub_state_environment({1: "value"}),
@@ -270,7 +270,7 @@ class StateHomeResolutionTests(StateStoreTestCase):
 
 class StateHomeSafetyTests(StateStoreTestCase):
     def test_overlap_policy_catches_ancestry_aliases_and_not_prefix_siblings(self):
-        with tempfile.TemporaryDirectory(prefix="forge-overlap-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-overlap-") as temp_dir:
             base = Path(temp_dir)
             target = base / "repo"
             target.mkdir()
@@ -317,7 +317,7 @@ class StateHomeSafetyTests(StateStoreTestCase):
 
     @unittest.skipUnless(hasattr(os, "symlink"), "symlink support required")
     def test_target_owned_links_cannot_reach_state_home(self):
-        with tempfile.TemporaryDirectory(prefix="forge-link-safety-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-link-safety-") as temp_dir:
             base = Path(temp_dir)
             target = base / "repo"
             target.mkdir()
@@ -329,7 +329,7 @@ class StateHomeSafetyTests(StateStoreTestCase):
 
     @unittest.skipUnless(hasattr(os, "symlink"), "symlink support required")
     def test_broken_target_owned_links_fail_closed(self):
-        with tempfile.TemporaryDirectory(prefix="forge-broken-link-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-broken-link-") as temp_dir:
             base = Path(temp_dir)
             target = base / "repo"
             target.mkdir()
@@ -339,7 +339,7 @@ class StateHomeSafetyTests(StateStoreTestCase):
 
     @unittest.skipUnless(hasattr(os, "symlink"), "symlink support required")
     def test_target_link_scan_streams_entries_and_enforces_bound(self):
-        with tempfile.TemporaryDirectory(prefix="forge-streamed-links-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-streamed-links-") as temp_dir:
             root = Path(temp_dir)
             destination = root / "destination"
             destination.mkdir()
@@ -360,7 +360,7 @@ class StateHomeSafetyTests(StateStoreTestCase):
 
     @unittest.skipUnless(os.name == "posix", "POSIX ownership/mode test")
     def test_private_directory_creation_and_existing_unsafe_mode(self):
-        with tempfile.TemporaryDirectory(prefix="forge-permissions-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-permissions-") as temp_dir:
             base = Path(temp_dir)
             target = base / "repo"
             target.mkdir()
@@ -383,7 +383,7 @@ class StateHomeSafetyTests(StateStoreTestCase):
 
     @unittest.skipUnless(hasattr(os, "symlink"), "symlink support required")
     def test_state_home_file_and_broken_symlink_are_preserved_and_rejected(self):
-        with tempfile.TemporaryDirectory(prefix="forge-state-node-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-state-node-") as temp_dir:
             base = Path(temp_dir)
             target = base / "repo"
             target.mkdir()
@@ -400,7 +400,7 @@ class StateHomeSafetyTests(StateStoreTestCase):
             self.assertTrue(broken.is_symlink())
 
     def test_failed_capability_gate_refuses_trusted_state(self):
-        with tempfile.TemporaryDirectory(prefix="forge-capability-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-capability-") as temp_dir:
             base = Path(temp_dir)
             target = base / "repo"
             target.mkdir()
@@ -431,7 +431,7 @@ class StateHomeSafetyTests(StateStoreTestCase):
 
     @unittest.skipUnless(os.name == "posix", "current probe supports POSIX")
     def test_real_probe_exercises_actual_state_filesystem_and_cleans_up(self):
-        with tempfile.TemporaryDirectory(prefix="forge-real-probe-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-real-probe-") as temp_dir:
             state_home = Path(temp_dir) / "state"
             state_home.mkdir(mode=0o700)
             capabilities = self.store.probe_state_home_filesystem(state_home)
@@ -440,7 +440,7 @@ class StateHomeSafetyTests(StateStoreTestCase):
 
     @unittest.skipUnless(Path("/proc/self/fd").is_dir(), "Linux fd accounting required")
     def test_lock_probe_closes_descriptor_when_setup_fails(self):
-        with tempfile.TemporaryDirectory(prefix="forge-lock-probe-fd-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-lock-probe-fd-") as temp_dir:
             lock_path = Path(temp_dir) / "lock"
             before = len(list(Path("/proc/self/fd").iterdir()))
             with mock.patch.object(
@@ -453,7 +453,7 @@ class StateHomeSafetyTests(StateStoreTestCase):
 
     @unittest.skipUnless(os.name == "posix", "POSIX lock publication required")
     def test_failed_published_lock_is_preserved_to_prevent_split_lock_inodes(self):
-        with tempfile.TemporaryDirectory(prefix="forge-published-lock-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-published-lock-") as temp_dir:
             root = Path(temp_dir)
             root.chmod(0o700)
             lock_path = root / ".lock"
@@ -468,7 +468,7 @@ class StateHomeSafetyTests(StateStoreTestCase):
 
     @unittest.skipUnless(os.name == "posix", "CAS adapter is POSIX-only")
     def test_expected_digest_compare_and_swap_rejects_stale_writer(self):
-        with tempfile.TemporaryDirectory(prefix="forge-cas-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-cas-") as temp_dir:
             root = Path(temp_dir)
             root.chmod(0o700)
             head = root / "head"
@@ -518,10 +518,10 @@ class StateHomeSafetyTests(StateStoreTestCase):
             self.assertEqual(b"root-b", head.read_bytes())
 
     def test_probe_name_collision_preserves_preexisting_artifact(self):
-        with tempfile.TemporaryDirectory(prefix="forge-probe-collision-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-probe-collision-") as temp_dir:
             state_home = Path(temp_dir) / "state"
             state_home.mkdir(mode=0o700)
-            collision = state_home / ".forge-capability-fixed"
+            collision = state_home / ".exakt-capability-fixed"
             collision.mkdir(mode=0o700)
             marker = collision / "marker"
             marker.write_text("preserve")
@@ -619,11 +619,11 @@ class RepositoryIdentityTests(StateStoreTestCase):
             self.store.scope_id_for_repositories([a]), r"^scope-[0-9a-f]{64}$"
         )
         self.assertEqual(
-            "scope-6144241a8cea76abaed3a8e8c6f5a8e4d6bfe0fa613d8bdae1cf1c868cb270de",
+            "scope-245e21cb2681c51cc30c9b87c05d6faa779095725564d9c76da04ec9c466c01c",
             self.store.scope_id_for_repositories([a]),
         )
         self.assertEqual(
-            "scope-501efb3176635ddaa6d796bbbe1a2d5a896d53ff3f376d97fab248f140144550",
+            "scope-a9d08635db46a761caef68c74c42e76ac6d8a8d16ac6c55ccd45c61eb6626a97",
             self.store.scope_id_for_repositories([a, b]),
         )
 
@@ -653,7 +653,7 @@ class RepositoryIdentityTests(StateStoreTestCase):
                         )
 
     def test_tree_anchor_format_depends_on_vcs_kind(self):
-        with tempfile.TemporaryDirectory(prefix="forge-tree-anchor-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-tree-anchor-") as temp_dir:
             root = Path(temp_dir)
             for vcs_kind, digest in (
                 ("git", "a" * 40),
@@ -685,7 +685,7 @@ class RepositoryIdentityTests(StateStoreTestCase):
                         )
 
     def test_repository_record_resolves_root_and_contains_only_sanitized_anchors(self):
-        with tempfile.TemporaryDirectory(prefix="forge-repository-record-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-repository-record-") as temp_dir:
             base = Path(temp_dir)
             root = base / "repository"
             root.mkdir()
@@ -707,7 +707,7 @@ class RepositoryIdentityTests(StateStoreTestCase):
             self.assertEqual({"device", "inode"}, set(record["filesystem_identity"]))
 
     def test_explicit_repository_id_is_never_silently_replaced(self):
-        with tempfile.TemporaryDirectory(prefix="forge-explicit-repo-id-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-explicit-repo-id-") as temp_dir:
             for repository_id in ("", 0, False, b""):
                 with self.subTest(repository_id=repository_id):
                     with self.assertRaises(self.store.RepositoryIdentityError):
@@ -723,7 +723,7 @@ class RepositoryIdentityTests(StateStoreTestCase):
                         )
 
     def test_missing_or_non_directory_repository_root_is_a_controlled_error(self):
-        with tempfile.TemporaryDirectory(prefix="forge-bad-root-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-bad-root-") as temp_dir:
             base = Path(temp_dir)
             file_root = base / "file"
             file_root.write_text("not a repository")
@@ -738,7 +738,7 @@ class RepositoryIdentityTests(StateStoreTestCase):
                         )
 
     def test_registry_reuses_exact_root_but_not_same_remote_clone(self):
-        with tempfile.TemporaryDirectory(prefix="forge-registry-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-registry-") as temp_dir:
             base = Path(temp_dir)
             state_home = base / "state"
             state_home.mkdir(mode=0o700)
@@ -778,7 +778,7 @@ class RepositoryIdentityTests(StateStoreTestCase):
             self.assertNotIn("password", serialized)
 
     def test_moved_root_requires_relocation_instead_of_minting_a_new_identity(self):
-        with tempfile.TemporaryDirectory(prefix="forge-moved-root-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-moved-root-") as temp_dir:
             base = Path(temp_dir)
             state_home = base / "state"
             state_home.mkdir(mode=0o700)
@@ -806,7 +806,7 @@ class RepositoryIdentityTests(StateStoreTestCase):
             self.assertEqual(before, (state_home / "repositories-v1.json").read_bytes())
 
     def test_malformed_registry_blocks_identity_creation_without_rewrite(self):
-        with tempfile.TemporaryDirectory(prefix="forge-bad-registry-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-bad-registry-") as temp_dir:
             base = Path(temp_dir)
             state_home = base / "state"
             state_home.mkdir(mode=0o700)
@@ -850,7 +850,7 @@ class RepositoryIdentityTests(StateStoreTestCase):
         )
         for record in malformed_records:
             with self.subTest(record=record):
-                with tempfile.TemporaryDirectory(prefix="forge-bad-record-") as temp_dir:
+                with tempfile.TemporaryDirectory(prefix="exakt-bad-record-") as temp_dir:
                     base = Path(temp_dir)
                     state_home = base / "state"
                     state_home.mkdir(mode=0o700)
@@ -886,7 +886,7 @@ class RepositoryIdentityTests(StateStoreTestCase):
             "filesystem_identity": {"device": 1, "inode": 2},
             "initial_tree_digest": "a" * 64,
         }
-        with tempfile.TemporaryDirectory(prefix="forge-registry-platform-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-registry-platform-") as temp_dir:
             state_home = Path(temp_dir)
             state_home.chmod(0o700)
             path = state_home / "repositories-v1.json"
@@ -939,7 +939,7 @@ class RepositoryIdentityTests(StateStoreTestCase):
         )
         for invalid_root in invalid_roots:
             with self.subTest(invalid_root=invalid_root):
-                with tempfile.TemporaryDirectory(prefix="forge-root-syntax-") as temp_dir:
+                with tempfile.TemporaryDirectory(prefix="exakt-root-syntax-") as temp_dir:
                     state_home = Path(temp_dir)
                     state_home.chmod(0o700)
                     record = dict(base_record)
@@ -967,7 +967,7 @@ class RepositoryIdentityTests(StateStoreTestCase):
             (".repositories-v1.lock", b"lock"),
         ):
             with self.subTest(attacked_name=attacked_name):
-                with tempfile.TemporaryDirectory(prefix="forge-registry-mode-") as temp_dir:
+                with tempfile.TemporaryDirectory(prefix="exakt-registry-mode-") as temp_dir:
                     base = Path(temp_dir)
                     state_home = base / "state"
                     state_home.mkdir(mode=0o700)
@@ -989,7 +989,7 @@ class RepositoryIdentityTests(StateStoreTestCase):
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "Linux ACL adapter required")
     def test_registry_rejects_extended_acl_on_existing_private_file(self):
-        with tempfile.TemporaryDirectory(prefix="forge-registry-acl-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-registry-acl-") as temp_dir:
             state_home = Path(temp_dir)
             state_home.chmod(0o700)
             registry_path = state_home / "repositories-v1.json"
@@ -1012,7 +1012,7 @@ class RepositoryIdentityTests(StateStoreTestCase):
     def test_new_lock_and_temp_files_fail_closed_on_inherited_extended_acl(self):
         for failing_private_file in (1, 2):
             with self.subTest(failing_private_file=failing_private_file):
-                with tempfile.TemporaryDirectory(prefix="forge-new-file-acl-") as temp_dir:
+                with tempfile.TemporaryDirectory(prefix="exakt-new-file-acl-") as temp_dir:
                     base = Path(temp_dir)
                     state_home = base / "state"
                     state_home.mkdir(mode=0o700)
@@ -1051,7 +1051,7 @@ class RepositoryIdentityTests(StateStoreTestCase):
                     )
 
     def test_atomic_temp_collision_is_preserved_and_never_installed(self):
-        with tempfile.TemporaryDirectory(prefix="forge-registry-temp-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-registry-temp-") as temp_dir:
             base = Path(temp_dir)
             state_home = base / "state"
             state_home.mkdir(mode=0o700)
@@ -1077,7 +1077,7 @@ class RepositoryIdentityTests(StateStoreTestCase):
     def test_registry_and_lock_symlink_attacks_do_not_touch_victims(self):
         for attacked_name in ("repositories-v1.json", ".repositories-v1.lock"):
             with self.subTest(attacked_name=attacked_name):
-                with tempfile.TemporaryDirectory(prefix="forge-registry-link-") as temp_dir:
+                with tempfile.TemporaryDirectory(prefix="exakt-registry-link-") as temp_dir:
                     base = Path(temp_dir)
                     state_home = base / "state"
                     state_home.mkdir(mode=0o700)
@@ -1100,18 +1100,18 @@ class RepositoryIdentityTests(StateStoreTestCase):
         child = self.store.scrub_state_environment(
             {
                 "PATH": "/bin",
-                "FORGE_STATE_HOME": "/private/state",
-                "FORGE_STATE_HANDLE": "9",
-                "forge_state_home": "/also-private/state",
-                "Forge_State_Handle": "10",
-                "FORGE_MODE": "task",
+                "EXAKT_STATE_HOME": "/private/state",
+                "EXAKT_STATE_HANDLE": "9",
+                "exakt_state_home": "/also-private/state",
+                "Exakt_State_Handle": "10",
+                "EXAKT_MODE": "task",
             }
         )
-        self.assertEqual({"PATH": "/bin", "FORGE_MODE": "task"}, child)
+        self.assertEqual({"PATH": "/bin", "EXAKT_MODE": "task"}, child)
 
     @unittest.skipUnless(os.name == "posix", "registry adapter is POSIX-only")
     def test_concurrent_first_initialization_mints_one_repository_identity(self):
-        with tempfile.TemporaryDirectory(prefix="forge-registry-race-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-registry-race-") as temp_dir:
             base = Path(temp_dir)
             state_home = base / "state"
             state_home.mkdir(mode=0o700)
@@ -1120,7 +1120,7 @@ class RepositoryIdentityTests(StateStoreTestCase):
             program = """
 import importlib.util, pathlib, sys
 module_path, state_home, root, byte = sys.argv[1:]
-spec = importlib.util.spec_from_file_location('forge_state_store_child', module_path)
+spec = importlib.util.spec_from_file_location('exakt_state_store_child', module_path)
 module = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = module
 spec.loader.exec_module(module)
@@ -1250,7 +1250,7 @@ class ResumeSelectionTests(StateStoreTestCase):
                     )
 
     def test_work_item_state_path_is_validated_and_beneath_scope(self):
-        with tempfile.TemporaryDirectory(prefix="forge-work-path-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-work-path-") as temp_dir:
             work_id = "work-00000000000000000000000000000001"
             expected = Path(temp_dir) / self.scope / work_id
             self.assertEqual(

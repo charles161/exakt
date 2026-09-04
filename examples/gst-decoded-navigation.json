@@ -1,5 +1,5 @@
 {
-  "schema_version": "forge-report-v1",
+  "schema_version": "exakt-report-v1",
   "title": "GST Decoded chapter navigation",
   "mode": "task",
   "summary": "Turn an 18-chapter scrolling course into a navigable learning journey without disrupting its cinematic reading experience.",

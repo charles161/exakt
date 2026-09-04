@@ -7,11 +7,11 @@ from pathlib import Path
 
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
-REDUCER_PATH = PACKAGE_ROOT / "skills/forge/scripts/reducer.py"
+REDUCER_PATH = PACKAGE_ROOT / "skills/exakt/scripts/reducer.py"
 
 
 def load_module():
-    spec = importlib.util.spec_from_file_location("forge_reducer", REDUCER_PATH)
+    spec = importlib.util.spec_from_file_location("exakt_reducer", REDUCER_PATH)
     if spec is None or spec.loader is None:
         raise AssertionError(f"cannot import reducer module: {REDUCER_PATH}")
     module = importlib.util.module_from_spec(spec)

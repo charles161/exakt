@@ -11,15 +11,15 @@ from pathlib import Path
 
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
-RENDERER_PATH = PACKAGE_ROOT / "skills/forge/scripts/render_report.py"
-TEMPLATE_PATH = PACKAGE_ROOT / "skills/forge/assets/report-template.html"
+RENDERER_PATH = PACKAGE_ROOT / "skills/exakt/scripts/render_report.py"
+TEMPLATE_PATH = PACKAGE_ROOT / "skills/exakt/assets/report-template.html"
 FIXTURE_PATH = PACKAGE_ROOT / "tests/fixtures/report-state.json"
 
 
 class RendererTests(unittest.TestCase):
     def load_renderer(self):
         self.assertTrue(RENDERER_PATH.is_file(), "renderer implementation is missing")
-        spec = importlib.util.spec_from_file_location("forge_report_renderer", RENDERER_PATH)
+        spec = importlib.util.spec_from_file_location("exakt_report_renderer", RENDERER_PATH)
         self.assertIsNotNone(spec)
         self.assertIsNotNone(spec.loader)
         module = importlib.util.module_from_spec(spec)
@@ -41,7 +41,7 @@ class RendererTests(unittest.TestCase):
         self.assertIn("Payment recovery studio", first)
         self.assertIn("2026-09-04T09:30:00Z", first)
 
-        with tempfile.TemporaryDirectory(prefix="forge-renderer-cli-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-renderer-cli-") as temp_dir:
             output = Path(temp_dir) / "report.html"
             result = subprocess.run(
                 [sys.executable, str(RENDERER_PATH), str(FIXTURE_PATH), "--output", str(output)],
@@ -110,7 +110,7 @@ class RendererTests(unittest.TestCase):
         self.assertIn('id="download-feedback"', html)
         self.assertIn("navigator.clipboard.writeText", html)
         self.assertIn("new Blob", html)
-        self.assertIn('download="forge-feedback.json"', html)
+        self.assertIn('download="exakt-feedback.json"', html)
         self.assertIn("Draft only", html)
 
     def test_statuses_are_not_color_only_and_truth_risks_sort_first(self):
@@ -148,7 +148,7 @@ class RendererTests(unittest.TestCase):
 
     def test_cli_rejects_malformed_or_non_object_json_without_output(self):
         self.load_renderer()
-        with tempfile.TemporaryDirectory(prefix="forge-renderer-invalid-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-renderer-invalid-") as temp_dir:
             root = Path(temp_dir)
             output = root / "report.html"
             for name, payload in (("broken.json", "{"), ("array.json", "[]")):

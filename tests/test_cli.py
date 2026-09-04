@@ -7,10 +7,10 @@ from pathlib import Path
 
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
-CLI = PACKAGE_ROOT / "skills/forge/scripts/forge.py"
+CLI = PACKAGE_ROOT / "skills/exakt/scripts/exakt.py"
 
 
-class ForgeCliTests(unittest.TestCase):
+class ExaktCliTests(unittest.TestCase):
     def run_cli(self, *args, cwd=None):
         return subprocess.run(
             [sys.executable, str(CLI), *map(str, args)],
@@ -21,7 +21,7 @@ class ForgeCliTests(unittest.TestCase):
         )
 
     def test_init_creates_a_clean_task_workspace_and_terminal_summary(self):
-        with tempfile.TemporaryDirectory(prefix="forge-cli-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-cli-") as temp_dir:
             output = Path(temp_dir) / "state.json"
             result = self.run_cli(
                 "init",
@@ -33,18 +33,18 @@ class ForgeCliTests(unittest.TestCase):
                 "--no-render",
             )
             self.assertEqual(0, result.returncode, result.stderr)
-            self.assertIn("FORGE", result.stdout)
+            self.assertIn("EXAKT", result.stdout)
             self.assertIn("TASK", result.stdout)
             self.assertIn(str(output), result.stdout)
             state = json.loads(output.read_text(encoding="utf-8"))
-            self.assertEqual("forge-report-v1", state["schema_version"])
+            self.assertEqual("exakt-report-v1", state["schema_version"])
             self.assertEqual("task", state["mode"])
             self.assertEqual("Make chapter navigation URL-shareable and accessible", state["brief"]["outcome"])
             self.assertEqual("intake", state["phase"])
             self.assertEqual("draft", state["status"])
 
     def test_init_refuses_silent_overwrite_and_product_mode_is_explicit(self):
-        with tempfile.TemporaryDirectory(prefix="forge-cli-overwrite-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-cli-overwrite-") as temp_dir:
             output = Path(temp_dir) / "state.json"
             first = self.run_cli(
                 "init", "Build a complete learning platform", "--mode", "product", "--output", output, "--no-render"
@@ -59,7 +59,7 @@ class ForgeCliTests(unittest.TestCase):
             self.assertEqual("Build a complete learning platform", state["brief"]["outcome"])
 
     def test_status_and_verify_never_call_draft_work_complete(self):
-        with tempfile.TemporaryDirectory(prefix="forge-cli-verify-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-cli-verify-") as temp_dir:
             output = Path(temp_dir) / "state.json"
             self.assertEqual(
                 0,
@@ -89,7 +89,7 @@ class ForgeCliTests(unittest.TestCase):
             self.assertIn("VERIFIED", verify.stdout)
 
     def test_malformed_or_false_complete_state_fails_closed(self):
-        with tempfile.TemporaryDirectory(prefix="forge-cli-invalid-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-cli-invalid-") as temp_dir:
             malformed = Path(temp_dir) / "bad.json"
             malformed.write_text("{}", encoding="utf-8")
             self.assertNotEqual(0, self.run_cli("status", malformed).returncode)
@@ -98,7 +98,7 @@ class ForgeCliTests(unittest.TestCase):
             false_complete.write_text(
                 json.dumps(
                     {
-                        "schema_version": "forge-report-v1",
+                        "schema_version": "exakt-report-v1",
                         "title": "False claim",
                         "mode": "task",
                         "summary": "",

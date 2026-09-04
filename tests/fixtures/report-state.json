@@ -1,5 +1,5 @@
 {
-  "schema_version": "forge-report-v1",
+  "schema_version": "exakt-report-v1",
   "title": "Payment recovery studio",
   "mode": "product",
   "summary": "Make interrupted payments recoverable without charging a customer twice.",
@@ -116,7 +116,7 @@
   ],
   "files": [
     {
-      "path": "skills/forge/scripts/actions.py",
+      "path": "skills/exakt/scripts/actions.py",
       "change": "modified",
       "status": "reviewed"
     }

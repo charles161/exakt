@@ -1,5 +1,5 @@
 {
-  "name": "forge",
+  "name": "exakt",
   "version": "0.1.0",
   "description": "Portable verification-first engineering workflow",
   "author": {
@@ -7,14 +7,14 @@
   },
   "license": "MIT",
   "interface": {
-    "displayName": "Forge",
+    "displayName": "Exakt",
     "shortDescription": "Verification-first engineering workflow",
     "longDescription": "Guide engineering work through evidence, tests, implementation, and review.",
     "developerName": "Charles MJ",
     "category": "Developer Tools",
     "capabilities": [],
     "defaultPrompt": [
-      "Use Forge to implement this change with verification-first engineering."
+      "Use Exakt to implement this change with verification-first engineering."
     ]
   }
 }

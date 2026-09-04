@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
-INSTALLER = PACKAGE_ROOT / "skills/forge/scripts/install.py"
+INSTALLER = PACKAGE_ROOT / "skills/exakt/scripts/install.py"
 
 
 class InstallerTests(unittest.TestCase):
@@ -19,25 +19,25 @@ class InstallerTests(unittest.TestCase):
         )
 
     def test_codex_and_claude_clean_installs_have_truthful_invocations(self):
-        for host, invocation in (("codex", "$forge <task>"), ("claude", "/forge <task>")):
+        for host, invocation in (("codex", "$exakt <task>"), ("claude", "/exakt <task>")):
             with self.subTest(host=host):
-                with tempfile.TemporaryDirectory(prefix=f"forge-{host}-") as temp_dir:
+                with tempfile.TemporaryDirectory(prefix=f"exakt-{host}-") as temp_dir:
                     root = Path(temp_dir)
                     result = self.run_installer("--host", host, "--root", root)
                     self.assertEqual(0, result.returncode, result.stderr)
-                    skill = root / "skills" / "forge"
+                    skill = root / "skills" / "exakt"
                     self.assertTrue((skill / "SKILL.md").is_file())
-                    self.assertTrue((skill / "scripts" / "forge.py").is_file())
+                    self.assertTrue((skill / "scripts" / "exakt.py").is_file())
                     self.assertIn(invocation, result.stdout)
                     if host == "claude":
-                        command = root / "commands" / "forge.md"
+                        command = root / "commands" / "exakt.md"
                         self.assertTrue(command.is_file())
                         self.assertIn(str(skill / "SKILL.md"), command.read_text())
 
     def test_existing_destination_is_never_overwritten(self):
-        with tempfile.TemporaryDirectory(prefix="forge-collision-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-collision-") as temp_dir:
             root = Path(temp_dir)
-            destination = root / "skills" / "forge"
+            destination = root / "skills" / "exakt"
             destination.mkdir(parents=True)
             marker = destination / "user-file.txt"
             marker.write_text("keep", encoding="utf-8")
@@ -46,13 +46,13 @@ class InstallerTests(unittest.TestCase):
             self.assertEqual("keep", marker.read_text(encoding="utf-8"))
 
     def test_dry_run_changes_nothing(self):
-        with tempfile.TemporaryDirectory(prefix="forge-dry-run-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="exakt-dry-run-") as temp_dir:
             root = Path(temp_dir)
             result = self.run_installer(
                 "--host", "generic", "--root", root, "--dry-run"
             )
             self.assertEqual(0, result.returncode, result.stderr)
-            self.assertFalse((root / "forge").exists())
+            self.assertFalse((root / "exakt").exists())
             self.assertIn("WOULD INSTALL", result.stdout)
 
 

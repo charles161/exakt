@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:exakt:schema:approval-v1",
+  "title": "Exakt approval v1",
+  "description": "Digest-bound approval representation only; Task 5 controller replay will authenticate live-user and host-receipt provenance.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "approval_id",
+    "work_item_id",
+    "expected_state_root",
+    "subject_digest",
+    "authority",
+    "scope",
+    "expires_at",
+    "nonce",
+    "clock_epoch",
+    "single_use"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "const": "approval-v1"},
+    "approval_id": {"$ref": "#/$defs/non_empty_string"},
+    "work_item_id": {"$ref": "#/$defs/non_empty_string"},
+    "expected_state_root": {"$ref": "#/$defs/sha256"},
+    "subject_digest": {"$ref": "#/$defs/sha256"},
+    "authority": {"$ref": "#/$defs/authority"},
+    "scope": {"$ref": "#/$defs/scope"},
+    "expires_at": {"$ref": "#/$defs/non_empty_string"},
+    "nonce": {"$ref": "#/$defs/non_empty_string"},
+    "clock_epoch": {"type": "integer", "minimum": 1},
+    "single_use": {"type": "boolean"}
+  },
+  "$defs": {
+    "non_empty_string": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
+    "non_empty_string_list": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/non_empty_string"},
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "side_effect_class": {
+      "type": "string",
+      "enum": [
+        "local_read",
+        "network_read",
+        "local_reversible_write",
+        "external_reversible_write",
+        "external_irreversible_write",
+        "publication",
+        "production_deploy"
+      ]
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority_kind", "identity", "channel", "receipt_id"],
+      "properties": {
+        "authority_kind": {"type": "string", "enum": ["live_user", "authenticated_host_receipt"]},
+        "identity": {"$ref": "#/$defs/non_empty_string"},
+        "channel": {"$ref": "#/$defs/non_empty_string"},
+        "receipt_id": {"type": ["string", "null"]}
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "targets",
+        "action_class",
+        "slice_id",
+        "oracle_digest",
+        "external_action_policy_digest",
+        "action_budget_digest"
+      ],
+      "properties": {
+        "targets": {"$ref": "#/$defs/non_empty_string_list"},
+        "action_class": {"$ref": "#/$defs/side_effect_class"},
+        "slice_id": {"type": ["string", "null"], "minLength": 1},
+        "oracle_digest": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
+        "external_action_policy_digest": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
+        "action_budget_digest": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}(?![\\s\\S])"}
+      }
+    }
+  }
+}

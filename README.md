@@ -1,6 +1,8 @@
-# Forge
+# Exakt
 
-Forge is a portable engineering workflow for turning a task or full product
+**From intent to evidence.**
+
+Exakt is a portable engineering workflow for turning a task or full product
 brief into a researched specification, architecture, acceptance criteria,
 implementation plan, working change, and evidence-calibrated handoff. It runs
 inside the coding harness you already use and adds a self-contained local HTML
@@ -8,11 +10,11 @@ project view rather than another IDE or hosted product.
 
 ## Invocation
 
-- Codex: `$forge <task or product brief>`
-- Claude Code: `/forge <task or product brief>`
-- Generic harness: load `skills/forge/SKILL.md` with the request.
+- Codex: `$exakt <task or product brief>`
+- Claude Code: `/exakt <task or product brief>`
+- Generic harness: load `skills/exakt/SKILL.md` with the request.
 
-Forge chooses a proportional task or product workflow, inspects the real
+Exakt chooses a proportional task or product workflow, inspects the real
 repository, collaborates on consequential decisions, uses bounded specialist
 agents when the host supports them, and compares the actual result with the
 approved acceptance criteria before claiming success.
@@ -22,30 +24,30 @@ The compact architecture and truth model are documented in
 
 ## Install
 
-The recommended primitive is the open Agent Skills CLI. Install Forge into the
+The recommended primitive is the open Agent Skills CLI. Install Exakt into the
 current project interactively:
 
 ```sh
-npx skills add charles161/forge-skill
+npx skills add charles161/exakt
 ```
 
 Or install it globally for both Codex and Claude Code without prompts:
 
 ```sh
-npx skills add charles161/forge-skill --skill forge -g -a codex -a claude-code -y
+npx skills add charles161/exakt --skill exakt -g -a codex claude-code -y
 ```
 
 For a manual installation or a harness the Skills CLI does not detect:
 
 ```sh
-git clone https://github.com/charles161/forge-skill.git
-cd forge-skill
+git clone https://github.com/charles161/exakt.git
+cd exakt
 
 # Install for Codex
-python3 skills/forge/scripts/install.py --host codex
+python3 skills/exakt/scripts/install.py --host codex
 
 # Install for Claude Code
-python3 skills/forge/scripts/install.py --host claude
+python3 skills/exakt/scripts/install.py --host claude
 ```
 
 Use `--root <path>` for an isolated or generic install. The installer refuses
@@ -58,9 +60,9 @@ report with the brief, architecture, plan, critiques, progress, verification,
 and evidence:
 
 ```sh
-python3 skills/forge/scripts/forge.py init "Add shareable chapter navigation" --mode task
-python3 skills/forge/scripts/forge.py render .forge/forge-state.json --force
-python3 skills/forge/scripts/forge.py verify .forge/forge-state.json
+python3 skills/exakt/scripts/exakt.py init "Add shareable chapter navigation" --mode task
+python3 skills/exakt/scripts/exakt.py render .exakt/exakt-state.json --force
+python3 skills/exakt/scripts/exakt.py verify .exakt/exakt-state.json
 ```
 
 The minimum completion gate refuses `verified` when acceptance criteria or

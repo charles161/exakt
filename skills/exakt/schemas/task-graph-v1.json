@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:exakt:schema:task-graph-v1",
+  "title": "Exakt task graph v1",
+  "description": "Dependency-linked implementation tasks and their orthogonal task statuses.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "work_item_id", "oracle_id", "tasks"],
+  "properties": {
+    "schema_version": {"type": "string", "const": "task-graph-v1"},
+    "work_item_id": {"$ref": "#/$defs/non_empty_string"},
+    "oracle_id": {"$ref": "#/$defs/non_empty_string"},
+    "tasks": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/task"},
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "non_empty_string": {"type": "string", "minLength": 1},
+    "string_list": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/non_empty_string"},
+      "uniqueItems": true
+    },
+    "non_empty_string_list": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/non_empty_string"},
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "task_status": {
+      "type": "string",
+      "enum": ["ready", "implementing", "observing", "verifying", "repairing", "verified", "blocked", "unverified", "failed", "cancelled"]
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_id",
+        "description",
+        "dependencies",
+        "requirement_ids",
+        "expected_files",
+        "verification_steps",
+        "approval_policy",
+        "status",
+        "attempts",
+        "evidence_ids"
+      ],
+      "properties": {
+        "task_id": {"$ref": "#/$defs/non_empty_string"},
+        "description": {"$ref": "#/$defs/non_empty_string"},
+        "dependencies": {"$ref": "#/$defs/string_list"},
+        "requirement_ids": {"$ref": "#/$defs/non_empty_string_list"},
+        "expected_files": {"$ref": "#/$defs/string_list"},
+        "verification_steps": {"$ref": "#/$defs/non_empty_string_list"},
+        "approval_policy": {"type": "string", "enum": ["none", "slice", "exact_action"]},
+        "status": {"$ref": "#/$defs/task_status"},
+        "attempts": {"type": "integer", "minimum": 0},
+        "evidence_ids": {"$ref": "#/$defs/string_list"}
+      }
+    }
+  }
+}
