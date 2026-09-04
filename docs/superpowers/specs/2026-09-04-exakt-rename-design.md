@@ -39,4 +39,3 @@ Completion requires evidence that:
 - the report is self-contained and branded Exakt;
 - the public repository is visible at `https://github.com/charles161/exakt`;
 - a fresh `npx skills` install is attributed to `charles161/exakt` and a new Codex process actually invokes Exakt.
-
