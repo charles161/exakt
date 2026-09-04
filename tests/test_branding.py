@@ -55,6 +55,9 @@ class ExaktBrandContractTests(unittest.TestCase):
         self.assertEqual("exakt", claude["name"])
         self.assertIn("From intent to evidence.", readme)
         self.assertIn("npx skills add charles161/exakt", readme)
+        self.assertIn(
+            "npx skills remove forge -g -a codex claude-code -y", readme
+        )
         self.assertNotIn("charles161/forge-skill", readme)
 
     def test_machine_contract_uses_exakt_identifiers_and_state_paths(self):

@@ -43,6 +43,22 @@ class ExaktCliTests(unittest.TestCase):
             self.assertEqual("intake", state["phase"])
             self.assertEqual("draft", state["status"])
 
+    def test_default_workspace_uses_the_canonical_report_filename(self):
+        with tempfile.TemporaryDirectory(prefix="exakt-cli-default-") as temp_dir:
+            root = Path(temp_dir)
+            result = self.run_cli(
+                "init",
+                "Verify the canonical Exakt workspace",
+                "--mode",
+                "task",
+                cwd=root,
+            )
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertTrue((root / ".exakt" / "exakt-state.json").is_file())
+            self.assertTrue((root / ".exakt" / "exakt-report.html").is_file())
+            self.assertFalse((root / ".exakt" / "exakt-state.html").exists())
+            self.assertIn(str(root / ".exakt" / "exakt-report.html"), result.stdout)
+
     def test_init_refuses_silent_overwrite_and_product_mode_is_explicit(self):
         with tempfile.TemporaryDirectory(prefix="exakt-cli-overwrite-") as temp_dir:
             output = Path(temp_dir) / "state.json"

@@ -32,6 +32,19 @@ def install(host: str, root: Path, *, dry_run: bool = False) -> tuple[Path, str]
     root = root.expanduser().resolve()
     if host not in {"codex", "claude", "generic"}:
         raise InstallError("host must be codex, claude, or generic")
+    legacy_paths = (
+        [root / "forge"]
+        if host == "generic"
+        else [root / "skills" / "forge", root / "commands" / "forge.md"]
+    )
+    legacy = next(
+        (path for path in legacy_paths if path.exists() or path.is_symlink()),
+        None,
+    )
+    if legacy is not None:
+        raise InstallError(
+            f"remove the legacy forge installation before installing Exakt: {legacy}"
+        )
     destination = root / "skills" / "exakt" if host != "generic" else root / "exakt"
     if destination.exists() or destination.is_symlink():
         raise InstallError(f"destination already exists: {destination}")

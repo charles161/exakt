@@ -166,6 +166,8 @@ def write_state(path: Path, state: dict[str, Any], *, force: bool = False) -> No
 
 
 def report_path_for(state_path: Path) -> Path:
+    if state_path.name == "exakt-state.json":
+        return state_path.with_name("exakt-report.html")
     return state_path.with_suffix(".html")
 
 

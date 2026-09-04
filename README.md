@@ -24,6 +24,13 @@ The compact architecture and truth model are documented in
 
 ## Install
 
+If the old `forge` skill was installed previously, remove it first so the harness cannot
+discover both names:
+
+```sh
+npx skills remove forge -g -a codex claude-code -y
+```
+
 The recommended primitive is the open Agent Skills CLI. Install Exakt into the
 current project interactively:
 
