@@ -57,14 +57,37 @@ Exakt selects the depth automatically:
 - **Product mode** expands a PRD or broad outcome into users, boundaries,
   requirements, architecture, risks, acceptance criteria, and staged delivery.
 
+## One command, one visible loop
+
+Exakt does not begin by translating the prompt directly into code. It first
+inspects the repository, states its current interpretation, and separates what
+is known, assumed, decided, unknown, or conflicted. If one answer would
+materially change the product or architecture, it asks one question with its
+best guess instead of opening a long discovery interview.
+
+After each answer, the change is explicit:
+
+```text
+Changed: deep links are part of the compatibility contract, not a redesign.
+Still open: whether explicit chapter jumps should create browser history entries.
+```
+
+Once the contract is coherent, Exakt shows a short brief, asks for the relevant
+execution approval, and maps stable milestones into the harness's native plan
+or TODO view when that can be done without replacing unrelated work. The same
+milestone IDs survive implementation, interruption, review, and closeout.
+
 ## See what Exakt produces
 
-Every run maintains two local artifacts:
+Every run maintains three local artifacts:
 
+- `.exakt/spec.md` — the living, human-readable contract: intent, boundaries,
+  architecture, behaviors, invariants, acceptance criteria, and proof plan.
 - `.exakt/exakt-state.json` — the structured source of truth for the brief,
-  requirements, decisions, tasks, evidence, and gaps.
+  stable IDs, decisions, tasks, evidence, invalidations, and gaps.
 - `.exakt/exakt-report.html` — a responsive, self-contained report that works
-  offline and can be reviewed outside the terminal.
+  offline and can be reviewed outside the terminal. It is a projection of the
+  same state, not a second source of truth.
 
 The report has seven focused views: brief and specification, architecture,
 acceptance criteria and plan, critique and decisions, progress, verification,
@@ -83,6 +106,19 @@ EXAKT  •  TASK  •  DESIGN  •  ACTIVE
 Project GST Decoded chapter navigation
 Proof   0/4 acceptance criteria verified
 State   /path/to/project/.exakt/exakt-state.json
+```
+
+Before execution, its conversational brief fits on one screen:
+
+```text
+Building: shareable chapter navigation without breaking continuous reading
+Why: readers can return to and share a specific lesson
+Boundary: no route-per-chapter rewrite or visual redesign
+Architecture: one URL/viewport controller used by both navigation surfaces
+Proof: deep-link, history, keyboard, reduced-motion, and 390px browser checks
+Plan: 3 milestones / 6 tasks
+Open: explicit jumps should push history; passive scrolling should replace it
+Spec: .exakt/spec.md
 ```
 
 The status says `ACTIVE`, not `VERIFIED`, because the example is a reviewed
@@ -143,6 +179,58 @@ That is the core difference: the output is not a generic checklist. It records
 what the repository already proves, what is only proposed, why the architecture
 was chosen, and exactly what evidence would make each claim true.
 
+## Build and verification discipline
+
+For executable behavior, Exakt defines the behavior, invariant, observable
+oracle, and a concrete counterexample before implementation. Then it requires:
+
+1. **RED:** a meaningful test fails against the pre-change behavior for the
+   expected reason.
+2. **GREEN:** the smallest coherent production change passes the focused check
+   and relevant regression checks.
+3. **REFACTOR:** structure improves without changing the protected behavior.
+4. **Falsify:** a fresh negative, boundary, runtime, or separated review tries
+   to disprove the result.
+
+The closeout also inspects the production and test diff for weakened assertions,
+skipped tests, fixture hard-coding, test-only branches, or snapshots changed
+without semantic review. A green suite does not override those failures.
+
+Documentation, visual work, and other non-executable changes use the honest
+equivalent: record the before-state, name a defect or counterexample, change the
+artifact, and inspect fresh proof. Exakt never invents a unit test for prose just
+to make the workflow look rigorous.
+
+Each milestone ends with a compact evidence record:
+
+```text
+Milestone: M2 — URL and viewport state agree
+Completed: valid and invalid deep links, passive scroll, explicit jumps
+Covered: R2, B1, INV1, AC1, AC2
+Changed: src/navigation.ts, tests/navigation.test.ts
+Proved: E4 focused RED/GREEN; E5 regression; E6 browser back/forward
+Gaps: none
+Commit: prepared; awaiting authorization
+Status: verified
+```
+
+If commits are authorized, the milestone commit carries the same contract:
+
+```text
+feat(navigation): synchronize chapters with the URL
+
+Milestone: M2
+Implements: R2, B1
+Protects: INV1
+Accepts: AC1, AC2
+Evidence: E4, E5, E6
+Spec-Digest: sha256:<approved-contract-digest>
+Gaps: none
+```
+
+The commit records provenance. The linked evidence—not the commit message—is
+what supports the claim.
+
 ## Use Exakt well
 
 You can invoke Exakt with one sentence. For better results on consequential
@@ -180,8 +268,8 @@ To get the most from the workflow:
   drills, or external state each prove different claims.
 - Attach the real PRD for larger products. Exakt will decompose it and pause on
   decisions that materially change behavior, risk, or architecture.
-- Keep `.exakt/exakt-state.json`. A later invocation can inspect it and continue
-  the same contract instead of rebuilding context from memory.
+- Keep the `.exakt/` artifacts. A later invocation can merge progress by stable
+  milestone and task IDs instead of rebuilding context or renumbering work.
 - Review the HTML report when decisions are dense. Its feedback control copies
   a structured response that can be pasted directly into the next harness turn.
 
@@ -223,6 +311,7 @@ The bundled helper can initialize, summarize, render, and gate report state:
 ```sh
 python3 skills/exakt/scripts/exakt.py init "Add shareable chapter navigation" --mode task
 python3 skills/exakt/scripts/exakt.py status .exakt/exakt-state.json
+python3 skills/exakt/scripts/exakt.py spec .exakt/exakt-state.json --force
 python3 skills/exakt/scripts/exakt.py render .exakt/exakt-state.json --force
 python3 skills/exakt/scripts/exakt.py verify .exakt/exakt-state.json
 ```
